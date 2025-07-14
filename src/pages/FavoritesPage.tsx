@@ -1,0 +1,220 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { FaHeart, FaTrash, FaArrowLeft } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import ProjectCard from '../components/ProjectCard';
+import { Project } from '../types';
+import { projectAPI } from '../services/api';
+
+const FavoritesPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [favorites, setFavorites] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadFavorites();
+  }, []);
+
+  const loadFavorites = async () => {
+    try {
+      setLoading(true);
+      const data = await projectAPI.getFavoriteProjects('1'); // Mock user ID
+      // Map pId to id for compatibility
+      setFavorites(data.map((project: any) => ({ ...project, id: project.pId })));
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFavoriteToggle = async (projectId: string) => {
+    try {
+      await projectAPI.toggleFavorite(projectId, '1'); // Mock user ID
+      // Remove from favorites list
+      setFavorites(prev => prev.filter(project => project.id !== Number(projectId)));
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+    }
+  };
+
+  const handleProjectClick = (project: Project) => {
+    // Navigate to project detail page (placeholder for now)
+    console.log('Project clicked:', project);
+    // navigate(`/project/${project.id}`);
+  };
+
+  const handleClearAllFavorites = async () => {
+    try {
+      // In a real app, you would call an API to clear all favorites
+      setFavorites([]);
+    } catch (error) {
+      console.error('Error clearing favorites:', error);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/')}
+                className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors duration-200"
+              >
+                <FaArrowLeft />
+                <span>Back to Home</span>
+              </motion.button>
+            </div>
+
+            {favorites.length > 0 && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleClearAllFavorites}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+              >
+                <FaTrash />
+                <span>Clear All</span>
+              </motion.button>
+            )}
+          </div>
+
+          <div className="mt-6">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              My Favorites
+            </h1>
+            <p className="text-gray-600">
+              Your saved projects and bookmarks
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Content */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          {/* Loading State */}
+          {loading && (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && favorites.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-16"
+            >
+              <div className="text-8xl mb-6">💔</div>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                No favorites yet
+              </h2>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                Start exploring projects and add them to your favorites to see them here
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    Explore Projects
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate('/filter')}
+                  className="btn-secondary"
+                >
+                  Browse All
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Favorites Grid */}
+          {!loading && favorites.length > 0 && (
+            <>
+              {/* Stats */}
+              <div className="mb-6 p-4 bg-white rounded-lg shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <FaHeart className="text-red-500" />
+                    <span className="text-lg font-semibold text-gray-900">
+                      {favorites.length} Favorite{favorites.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Last updated: {new Date().toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Projects Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {favorites.map((project, index) => (
+                  <motion.div
+                    key={project.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <ProjectCard
+                      project={project}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Quick Actions */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mt-8 p-6 bg-white rounded-lg shadow-sm"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Quick Actions
+                </h3>
+                <div className="flex flex-wrap gap-4">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/filter')}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    Find More Projects
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/')}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    Back to Home
+                  </motion.button>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default FavoritesPage; 

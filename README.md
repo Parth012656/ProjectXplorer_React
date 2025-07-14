@@ -1,46 +1,168 @@
-# Getting Started with Create React App
+# ProjectXplorer React Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, responsive React.js application for discovering and exploring programming projects across multiple domains.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+- **Landing Page**: Beautiful hero section with domain cards and call-to-action buttons
+- **Authentication**: Login/Register functionality with social login placeholders
+- **Home Page**: Center-aligned action buttons and domain exploration cards
+- **Filter Page**: Advanced filtering by domain, rating, and difficulty level
+- **Favorites Page**: Save and manage your favorite projects
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Animations**: Smooth transitions and hover effects with Framer Motion
+- **TypeScript**: Full type safety throughout the application
 
-### `npm start`
+## 🛠️ Tech Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **React 18** with TypeScript
+- **React Router** for navigation
+- **Tailwind CSS** for styling
+- **Framer Motion** for animations
+- **React Icons** for iconography
+- **Axios** for API calls (placeholder implementation)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 📁 Project Structure
 
-### `npm test`
+```
+src/
+├── components/          # Reusable UI components
+│   ├── Navbar.tsx      # Navigation component
+│   ├── ProjectCard.tsx # Project display card
+│   ├── FilterComponent.tsx # Filter controls
+│   ├── AuthComponent.tsx # Login/Register forms
+│   └── LandingCard.tsx # Domain cards for landing
+├── pages/              # Page components
+│   ├── LandingPage.tsx # Landing page
+│   ├── LoginPage.tsx   # Authentication page
+│   ├── HomePage.tsx    # Main home page
+│   ├── FilterPage.tsx  # Project filtering page
+│   └── FavoritesPage.tsx # Favorites management
+├── services/           # API services
+│   └── api.ts         # API calls and mock data
+├── types/              # TypeScript interfaces
+│   └── index.ts       # Type definitions
+└── utils/              # Utility functions
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🎨 Design Features
 
-### `npm run build`
+- **Modern UI**: Clean, minimalist design with gradient backgrounds
+- **Hover Effects**: Interactive elements with smooth transitions
+- **Responsive Grid**: Adaptive layouts for all screen sizes
+- **Loading States**: Skeleton loaders and loading spinners
+- **Empty States**: Helpful messages when no data is available
+- **Color-coded Difficulty**: Visual indicators for project complexity
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 🚀 Getting Started
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Prerequisites
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Node.js (v14 or higher)
+- npm or yarn
 
-### `npm run eject`
+### Installation
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd projectxplorer
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. Install dependencies:
+```bash
+npm install
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+3. Start the development server:
+```bash
+npm start
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+4. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-## Learn More
+### Available Scripts
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- `npm start` - Runs the app in development mode
+- `npm test` - Launches the test runner
+- `npm run build` - Builds the app for production
+- `npm run eject` - Ejects from Create React App (not recommended)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 📱 Pages Overview
+
+### Landing Page (`/landing`)
+- Hero section with app introduction
+- Feature highlights
+- Domain exploration cards
+- Call-to-action sections
+
+### Home Page (`/`)
+- Welcome message
+- Action buttons (Login, Favorites, Filter)
+- Domain cards for quick navigation
+- Statistics section
+
+### Login Page (`/login`)
+- Authentication modal
+- Social login options (Google/GitHub)
+- Email/password login
+- Registration form
+
+### Filter Page (`/filter`)
+- Advanced search functionality
+- Filter by domain, rating, and difficulty
+- Project cards display
+- Real-time filtering
+
+### Favorites Page (`/favorites`)
+- Saved projects display
+- Favorite management
+- Empty state handling
+- Quick actions
+
+## 🔧 Configuration
+
+### Tailwind CSS
+The project uses Tailwind CSS with custom configuration:
+- Custom color palette
+- Custom animations
+- Responsive breakpoints
+- Component classes
+
+### API Integration
+Currently uses mock data with placeholder API calls:
+- All API URLs are empty strings
+- Mock data provided for development
+- Ready for backend integration
+
+## 🎯 Future Enhancements
+
+- [ ] Backend API integration
+- [ ] User authentication with JWT
+- [ ] Project detail pages
+- [ ] User profiles
+- [ ] Project submission
+- [ ] Comments and ratings
+- [ ] Search functionality
+- [ ] Dark mode
+- [ ] PWA features
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🆘 Support
+
+For support and questions, please open an issue in the repository.
+
+---
+
+**Note**: This is a frontend-only implementation with mock data. Backend integration will be added in future updates.
