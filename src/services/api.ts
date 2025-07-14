@@ -77,9 +77,36 @@ export const projectAPI = {
   getProjectsByDifficulty,
   getProjectsByArea,
   getProjectDescriptionById,
-  // Add stubs for favorites for now
-  getFavoriteProjects: async (userId: string) => [],
-  toggleFavorite: async (projectId: string, userId: string) => {},
+  // Favorites using localStorage
+  getFavoriteProjects: async (userId: string) => {
+    const favs = localStorage.getItem(`favorites_${userId}`);
+    if (!favs) return [];
+    try {
+      return JSON.parse(favs);
+    } catch {
+      return [];
+    }
+  },
+  toggleFavorite: async (project: any, userId: string) => {
+    const key = `favorites_${userId}`;
+    let favs = localStorage.getItem(key);
+    let arr: any[] = [];
+    if (favs) {
+      try {
+        arr = JSON.parse(favs);
+      } catch {
+        arr = [];
+      }
+    }
+    // Remove if exists, else add (match by pId or id)
+    const idx = arr.findIndex((p) => (p.pId !== undefined && project.pId !== undefined && p.pId === project.pId) || (p.id !== undefined && project.id !== undefined && p.id === project.id));
+    if (idx !== -1) {
+      arr.splice(idx, 1);
+    } else {
+      arr.push(project);
+    }
+    localStorage.setItem(key, JSON.stringify(arr));
+  },
 };
 
 // Leave space for baseURL config

@@ -13,6 +13,7 @@ import {
   getProjectsByDifficulty,
   getProjectsByArea,
   getProjectDescriptionById,
+  projectAPI,
 } from '../services/api';
 import ProjectDetailsModal from '../components/ProjectDetailsModal';
 // Area map for mapping domain string to numeric ID
@@ -21,7 +22,7 @@ const areaMap: Record<string, number> = {
   'IoT': 2,
   'Web Development': 3,
   'Game Development': 4,
-  'Mobile Development': 5,
+  'Android Development': 5,
 };
 
 const FilterPage: React.FC = () => {
@@ -32,6 +33,7 @@ const FilterPage: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [projectDetails, setProjectDetails] = useState<any>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
 
   // Get selected domain from navigation state
   const selectedDomain = location.state?.selectedDomain;
@@ -46,6 +48,34 @@ const FilterPage: React.FC = () => {
     fetchProjects();
     // eslint-disable-next-line
   }, [filters]);
+
+  // Add this function to clear all favorites and reset favoriteIds
+  const clearAllFavorites = () => {
+    setFavoriteIds([]);
+  };
+
+  useEffect(() => {
+    // Load favorites on mount
+    const loadFavorites = async () => {
+      const data = await projectAPI.getFavoriteProjects('1');
+      setFavoriteIds(data.map((p: any) => p.pId || p.id));
+    };
+    loadFavorites();
+    // Listen for localStorage changes (e.g., clear all)
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'favorites_1') {
+        loadFavorites();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    // Listen for custom event from FavoritesPage
+    const onClearAll = () => clearAllFavorites();
+    window.addEventListener('favorites:clearAll', onClearAll);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('favorites:clearAll', onClearAll);
+    };
+  }, []);
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -103,6 +133,16 @@ const FilterPage: React.FC = () => {
     setProjectDetails(null);
   };
 
+  const handleFavoriteToggle = async (project: Project) => {
+    setFavoriteIds(prev =>
+      prev.includes(project.pId)
+        ? prev.filter(id => id !== project.pId)
+        : [...prev, project.pId]
+    );
+    await projectAPI.toggleFavorite(project, '1');
+    // No reload from localStorage here to avoid overwriting the optimistic state
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -135,7 +175,12 @@ const FilterPage: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <ProjectCard project={project} onClick={handleProjectClick} />
+                  <ProjectCard
+                    project={project}
+                    onClick={handleProjectClick}
+                    isFavorite={favoriteIds.includes(project.pId)}
+                    onFavoriteToggle={handleFavoriteToggle}
+                  />
                 </motion.div>
               ))}
             </div>

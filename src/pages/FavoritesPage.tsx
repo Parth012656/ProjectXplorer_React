@@ -4,7 +4,7 @@ import { FaHeart, FaTrash, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
 import { Project } from '../types';
-import { projectAPI } from '../services/api';
+import { projectAPI, getProjectsByAll } from '../services/api';
 
 const FavoritesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,9 +18,8 @@ const FavoritesPage: React.FC = () => {
   const loadFavorites = async () => {
     try {
       setLoading(true);
-      const data = await projectAPI.getFavoriteProjects('1'); // Mock user ID
-      // Map pId to id for compatibility
-      setFavorites(data.map((project: any) => ({ ...project, id: project.pId })));
+      const favorites = await projectAPI.getFavoriteProjects('1');
+      setFavorites(favorites);
     } catch (error) {
       console.error('Error loading favorites:', error);
     } finally {
@@ -28,11 +27,10 @@ const FavoritesPage: React.FC = () => {
     }
   };
 
-  const handleFavoriteToggle = async (projectId: string) => {
+  const handleFavoriteToggle = async (project: Project) => {
     try {
-      await projectAPI.toggleFavorite(projectId, '1'); // Mock user ID
-      // Remove from favorites list
-      setFavorites(prev => prev.filter(project => project.id !== Number(projectId)));
+      await projectAPI.toggleFavorite(project, '1');
+      loadFavorites(); // Reload favorites after toggle
     } catch (error) {
       console.error('Error removing favorite:', error);
     }
@@ -48,6 +46,8 @@ const FavoritesPage: React.FC = () => {
     try {
       // In a real app, you would call an API to clear all favorites
       setFavorites([]);
+      localStorage.setItem('favorites_1', JSON.stringify([]));
+      window.dispatchEvent(new Event('favorites:clearAll'));
     } catch (error) {
       console.error('Error clearing favorites:', error);
     }
@@ -126,21 +126,13 @@ const FavoritesPage: React.FC = () => {
                 Start exploring projects and add them to your favorites to see them here
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
-                  >
-                    Explore Projects
-                </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate('/filter')}
-                  className="btn-secondary"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
                 >
-                  Browse All
+                  Explore Projects
                 </motion.button>
               </div>
             </motion.div>
@@ -175,6 +167,8 @@ const FavoritesPage: React.FC = () => {
                   >
                     <ProjectCard
                       project={project}
+                      isFavorite={true}
+                      onFavoriteToggle={() => handleFavoriteToggle(project)}
                     />
                   </motion.div>
                 ))}
@@ -198,14 +192,6 @@ const FavoritesPage: React.FC = () => {
                     className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
                   >
                     Find More Projects
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
-                  >
-                    Back to Home
                   </motion.button>
                 </div>
               </motion.div>

@@ -14,7 +14,7 @@ const areaMap: Record<string, number> = {
   'IoT': 2,
   'Web Development': 3,
   'Game Development': 4,
-  'Mobile Development': 5,
+  'Android Development': 5,
 };
 const areaReverseMap: Record<number, string> = Object.fromEntries(
   Object.entries(areaMap).map(([k, v]) => [v, k])
