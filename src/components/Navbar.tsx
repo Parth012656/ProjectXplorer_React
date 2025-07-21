@@ -31,7 +31,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
           <Link to="/" className="flex items-center space-x-2">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="text-2xl font-bold text-blue-600"
+              className="text-2xl font-bold text-blue-600 ml-4"
             >
               ProjectXplorer
             </motion.div>

@@ -57,15 +57,14 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onLogin, onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-      onClick={onClose}
+      className="w-full max-w-md"
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8"
-        onClick={(e) => e.stopPropagation()}
+        // Removed onClick stopPropagation since no overlay
       >
         {/* Header */}
         <div className="text-center mb-8">
@@ -137,13 +136,13 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onLogin, onClose }) => {
               Email
             </label>
             <div className="relative">
-              <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaEnvelope className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="input-field pl-10"
+                className="input-field pl-12"
                 placeholder="Enter your email"
                 required
               />
@@ -155,13 +154,13 @@ const AuthComponent: React.FC<AuthComponentProps> = ({ onLogin, onClose }) => {
               Password
             </label>
             <div className="relative">
-              <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaLock className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="input-field pl-10 pr-10"
+                className="input-field pl-12 pr-10"
                 placeholder="Enter your password"
                 required
               />

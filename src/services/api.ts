@@ -109,5 +109,51 @@ export const projectAPI = {
   },
 };
 
+// Dummy data for admin panel
+const dummyUsers = [
+  { id: 1, name: 'Alice Smith', email: 'alice@example.com', role: 'Admin', lastLogin: '2024-06-01 10:00' },
+  { id: 2, name: 'Bob Johnson', email: 'bob@example.com', role: 'User', lastLogin: '2024-06-02 14:30' },
+  { id: 3, name: 'Carol Lee', email: 'carol@example.com', role: 'Moderator', lastLogin: '2024-06-03 09:15' },
+];
+const dummyProjects = [
+  { id: 1, title: 'AI Chatbot', domain: 'AI', difficulty: 'Medium', rating: 5 },
+  { id: 2, title: 'Web Portfolio', domain: 'Web', difficulty: 'Easy', rating: 4 },
+  { id: 3, title: 'IoT Home Automation', domain: 'IoT', difficulty: 'Hard', rating: 5 },
+  { id: 4, title: 'ML Stock Predictor', domain: 'ML', difficulty: 'Medium', rating: 3 },
+  { id: 5, title: 'Game Engine', domain: 'Game', difficulty: 'Hard', rating: 4 },
+];
+const dummyDomainCounts = [
+  { domain: 'AI', count: 1 },
+  { domain: 'Web', count: 1 },
+  { domain: 'IoT', count: 1 },
+  { domain: 'ML', count: 1 },
+  { domain: 'Game', count: 1 },
+];
+
+export async function getUserCount() {
+  return { count: dummyUsers.length };
+}
+
+export async function getProjectCount() {
+  return { count: dummyProjects.length };
+}
+
+export async function getProjectsDomainCounts() {
+  return dummyDomainCounts;
+}
+
+export async function getProjects() {
+  return dummyProjects;
+}
+
+export async function addProject(data: any) {
+  // Just simulate success
+  return { success: true };
+}
+
+export async function getUsers() {
+  return dummyUsers;
+}
+
 // Leave space for baseURL config
 // export const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/projectFilter'; 

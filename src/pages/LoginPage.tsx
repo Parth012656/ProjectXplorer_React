@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaArrowLeft } from 'react-icons/fa';
@@ -7,7 +7,6 @@ import { User } from '../types';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const [showAuth, setShowAuth] = useState(true);
 
   const handleLogin = (user: User) => {
     // In a real app, you would store the user in context or state management
@@ -16,7 +15,6 @@ const LoginPage: React.FC = () => {
   };
 
   const handleClose = () => {
-    setShowAuth(false);
     navigate('/');
   };
 
@@ -39,10 +37,8 @@ const LoginPage: React.FC = () => {
           <span>Back to Home</span>
         </motion.button>
 
-        {/* Auth Component */}
-        {showAuth && (
-          <AuthComponent onLogin={handleLogin} onClose={handleClose} />
-        )}
+        {/* Auth Component as standalone page content */}
+        <AuthComponent onLogin={handleLogin} onClose={handleClose} />
       </motion.div>
     </div>
   );
