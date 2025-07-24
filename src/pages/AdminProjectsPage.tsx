@@ -2,20 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { getProjects, addProject } from '../services/api';
 import AdminLayout from './AdminLayout';
 
-const domains = ['Web', 'AI', 'ML', 'IoT', 'Game', 'Android'];
-const difficulties = ['Easy', 'Medium', 'Hard'];
+const domains = ['Web', 'AI/ML', 'IoT', 'Game', 'Android'];
+const difficulties = ['Beginner', 'Intermediate', 'Advance'];
 
 const AdminProjectsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: '',
-    description: '',
+    briefDescription: '',
+    wholeDescription: '',
+    softwareRequired: '',
+    hardwareRequirements: '',
+    bestTech: '',
+    description: '', // keep for compatibility if needed
     domain: '',
     difficulty: '',
     rating: '',
-    github: '',
-    tags: '',
   });
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -31,7 +34,18 @@ const AdminProjectsPage: React.FC = () => {
     addProject(form)
       .then(() => {
         setSuccess('Project added successfully!');
-        setForm({ title: '', description: '', domain: '', difficulty: '', rating: '', github: '', tags: '' });
+        setForm({
+          title: '',
+          briefDescription: '',
+          wholeDescription: '',
+          softwareRequired: '',
+          hardwareRequirements: '',
+          bestTech: '',
+          description: '',
+          domain: '',
+          difficulty: '',
+          rating: '',
+        });
       })
       .catch(() => setError('Failed to add project'))
       .finally(() => setLoading(false));
@@ -56,14 +70,18 @@ const AdminProjectsPage: React.FC = () => {
           </select>
           <label className="block mb-2 font-semibold">Rating</label>
           <input name="rating" type="number" min="1" max="5" value={form.rating} onChange={handleFormChange} className="input-field mb-4" required />
+          <label className="block mb-2 font-semibold">Brief Description</label>
+          <textarea name="briefDescription" value={form.briefDescription} onChange={handleFormChange} className="input-field mb-4" required />
+          <label className="block mb-2 font-semibold">Whole Description</label>
+          <textarea name="wholeDescription" value={form.wholeDescription} onChange={handleFormChange} className="input-field mb-4" required />
         </div>
         <div>
-          <label className="block mb-2 font-semibold">Description</label>
-          <textarea name="description" value={form.description} onChange={handleFormChange} className="input-field mb-4" required />
-          <label className="block mb-2 font-semibold">GitHub Link</label>
-          <input name="github" value={form.github} onChange={handleFormChange} className="input-field mb-4" />
-          <label className="block mb-2 font-semibold">Tags (comma separated)</label>
-          <input name="tags" value={form.tags} onChange={handleFormChange} className="input-field mb-4" />
+          <label className="block mb-2 font-semibold">Software Required</label>
+          <input name="softwareRequired" value={form.softwareRequired} onChange={handleFormChange} className="input-field mb-4" required />
+          <label className="block mb-2 font-semibold">Hardware Requirements</label>
+          <input name="hardwareRequirements" value={form.hardwareRequirements} onChange={handleFormChange} className="input-field mb-4" required />
+          <label className="block mb-2 font-semibold">Best Tech</label>
+          <input name="bestTech" value={form.bestTech} onChange={handleFormChange} className="input-field mb-4" required />
           <button type="submit" className="btn-primary w-full mt-2" disabled={loading}>{loading ? 'Adding...' : 'Add Project'}</button>
           {success && <div className="text-green-600 mt-2">{success}</div>}
           {error && <div className="text-red-600 mt-2">{error}</div>}

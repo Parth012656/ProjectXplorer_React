@@ -1,17 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaHeart, FaTrash, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
+import ProjectDetailsModal from '../components/ProjectDetailsModal';
 import { Project } from '../types';
-import { projectAPI, getProjectsByAll } from '../services/api';
+import { projectAPI, getProjectsByAll, getProjectDescriptionById } from '../services/api';
 
 const FavoritesPage: React.FC = () => {
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [projectDetails, setProjectDetails] = useState<any>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     loadFavorites();
   }, []);
 
@@ -36,15 +40,26 @@ const FavoritesPage: React.FC = () => {
     }
   };
 
-  const handleProjectClick = (project: Project) => {
-    // Navigate to project detail page (placeholder for now)
-    console.log('Project clicked:', project);
-    // navigate(`/project/${project.id}`);
+  const handleProjectClick = async (project: Project) => {
+    setSelectedProject(project);
+    setDetailsLoading(true);
+    try {
+      const details = await getProjectDescriptionById(project.description.desIid);
+      setProjectDetails(details);
+    } catch (e) {
+      setProjectDetails(null);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedProject(null);
+    setProjectDetails(null);
   };
 
   const handleClearAllFavorites = async () => {
     try {
-      // In a real app, you would call an API to clear all favorites
       setFavorites([]);
       localStorage.setItem('favorites_1', JSON.stringify([]));
       window.dispatchEvent(new Event('favorites:clearAll'));
@@ -169,6 +184,7 @@ const FavoritesPage: React.FC = () => {
                       project={project}
                       isFavorite={true}
                       onFavoriteToggle={() => handleFavoriteToggle(project)}
+                      onClick={handleProjectClick}
                     />
                   </motion.div>
                 ))}
@@ -198,6 +214,14 @@ const FavoritesPage: React.FC = () => {
             </>
           )}
         </motion.div>
+        {selectedProject && (
+          <ProjectDetailsModal
+            project={selectedProject}
+            details={projectDetails}
+            loading={detailsLoading}
+            onClose={handleCloseModal}
+          />
+        )}
       </div>
     </div>
   );
