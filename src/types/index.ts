@@ -36,4 +36,22 @@ export interface AuthFormData {
   username: string;
   email: string;
   password: string;
+}
+
+export interface LoginRequest {
+  usernameOrEmail: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  username: string;
+  role: string;
+}
+
+export interface AuthUser {
+  token: string;
+  username: string;
+  role: string;
+  isAuthenticated: boolean;
 } 

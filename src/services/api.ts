@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Project } from '../types';
+import { Project, LoginRequest, LoginResponse } from '../types';
 
 // Base API configuration
 const BASE_URL = 'http://localhost:8080/projectFilter'; // TODO: move to env
@@ -7,6 +7,41 @@ const api = axios.create({
   baseURL: BASE_URL,
   timeout: 10000,
 });
+
+// Auth API configuration
+const authApi = axios.create({
+  baseURL: 'http://localhost:8080/api', // Auth endpoints base URL
+  timeout: 10000,
+});
+
+// Add request interceptor to include JWT token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle token expiration
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid, clear storage and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      localStorage.removeItem('role');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Project-related API calls
 export const getProjectsByAll = async (rating?: number, difficulty?: number, area?: number): Promise<Project[]> => {
@@ -123,11 +158,11 @@ const dummyProjects = [
   { id: 5, title: 'Game Engine', domain: 'Game', difficulty: 'Hard', rating: 4 },
 ];
 const dummyDomainCounts = [
-  { domain: 'AI', count: 1 },
-  { domain: 'Web', count: 1 },
-  { domain: 'IoT', count: 1 },
-  { domain: 'ML', count: 1 },
-  { domain: 'Game', count: 1 },
+  { domain: 'AI', count: 250 },
+  { domain: 'Web', count: 250 },
+  { domain: 'IoT', count: 250 },
+  { domain: 'ML', count: 250 },
+  { domain: 'Game', count: 250 },
 ];
 
 export async function getUserCount() {
@@ -154,6 +189,219 @@ export async function addProject(data: any) {
 export async function getUsers() {
   return dummyUsers;
 }
+
+// Authentication API functions
+export const authAPI = {
+  login: async (credentials: LoginRequest): Promise<LoginResponse> => {
+    try {
+      const response = await authApi.post('/auth/login', credentials);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        throw new Error('Invalid credentials');
+      }
+      throw new Error(error.response?.data?.message || 'Login failed');
+    }
+  },
+
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    localStorage.removeItem('role');
+  },
+
+  getStoredUser: () => {
+    const token = localStorage.getItem('token');
+    const username = localStorage.getItem('username');
+    const role = localStorage.getItem('role');
+    
+    if (token && username && role) {
+      return {
+        token,
+        username,
+        role,
+        isAuthenticated: true
+      };
+    }
+    return null;
+  },
+
+  isAuthenticated: (): boolean => {
+    return !!localStorage.getItem('token');
+  }
+};
+
+// Admin API configuration - separate instance for admin endpoints
+const adminApi = axios.create({
+  baseURL: 'http://localhost:8080/api', // Admin endpoints base URL
+  timeout: 10000,
+});
+
+// Debug function to test admin API configuration
+export const testAdminApi = async () => {
+  const token = localStorage.getItem('token');
+  console.log('Admin API Base URL:', adminApi.defaults.baseURL);
+  console.log('JWT Token:', token ? 'Present' : 'Missing');
+  console.log('Token Preview:', token ? token.substring(0, 20) + '...' : 'No token');
+  
+  // Test a simple request to see the actual URL being called
+  try {
+    const response = await adminApi.get('/admin/stats/users-count');
+    console.log('Test API call successful:', response);
+    return response;
+  } catch (error: any) {
+    console.error('Test API call failed:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      baseURL: error.config?.baseURL,
+      fullURL: error.config?.baseURL + error.config?.url
+    });
+    throw error;
+  }
+};
+
+// Add request interceptor to include JWT token for admin API
+adminApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle token expiration for admin API
+adminApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid, clear storage and redirect to login
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      localStorage.removeItem('role');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Admin API functions
+export const adminAPI = {
+  // Dashboard Stats
+  getUsersCount: async (): Promise<{ count: number }> => {
+    try {
+      const response = await adminApi.get('/admin/stats/users-count');
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw new Error('Unauthorized access - Admin role required');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to fetch users count');
+    }
+  },
+
+  getProjectsCount: async (): Promise<{ count: number }> => {
+    try {
+      const response = await adminApi.get('/admin/stats/projects-count');
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw new Error('Unauthorized access - Admin role required');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to fetch projects count');
+    }
+  },
+
+  getProjectsByDomain: async (): Promise<Array<{ domain: string; count: number }>> => {
+    try {
+      const response = await adminApi.get('/admin/stats/projects-by-domain');
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw new Error('Unauthorized access - Admin role required');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to fetch projects by domain');
+    }
+  },
+
+  // Users Management
+  getUsers: async (): Promise<Array<{
+    username: string;
+    email: string;
+    role: string;
+  }>> => {
+    try {
+      const response = await adminApi.get('/admin/users');
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw new Error('Unauthorized access - Admin role required');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to fetch users');
+    }
+  },
+
+  // Projects Management
+  getProjects: async (): Promise<Array<{
+    pId: number;
+    pName: string;
+    domain: string;
+    difficulty: string;
+    rating: number;
+    briefDes: string;
+    createdAt: string;
+  }>> => {
+    try {
+      const response = await adminApi.get('/admin/projects');
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw new Error('Unauthorized access - Admin role required');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to fetch projects');
+    }
+  },
+
+  addProject: async (projectData: {
+    title: string;
+    briefDescription: string;
+    wholeDescription: string;
+    softwareRequired: string;
+    hardwareRequirements: string;
+    bestTech: string;
+    domain: string;
+    difficulty: string;
+    rating: number;
+  }): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await adminApi.post('/admin/projects', projectData);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw new Error('Unauthorized access - Admin role required');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to add project');
+    }
+  },
+
+  deleteProject: async (pId: number): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await adminApi.delete(`/admin/projects/${pId}`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw new Error('Unauthorized access - Admin role required');
+      }
+      throw new Error(error.response?.data?.message || 'Failed to delete project');
+    }
+  }
+};
 
 // Leave space for baseURL config
 // export const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/projectFilter'; 

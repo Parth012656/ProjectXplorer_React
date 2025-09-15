@@ -1,21 +1,37 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaHome, FaHeart, FaSignInAlt, FaSignOutAlt, FaUser } from 'react-icons/fa';
-import { User } from '../types';
+import { FaHome, FaHeart, FaSignInAlt, FaSignOutAlt, FaUser, FaSearch } from 'react-icons/fa';
+import { AuthUser } from '../types';
 
 interface NavbarProps {
-  user: User | null;
+  user: AuthUser | null;
   onLogout: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
   const location = useLocation();
 
-  const navItems = [
-    { path: '/home', label: 'Home', icon: <FaHome /> },
-    { path: '/favorites', label: 'Favorites', icon: <FaHeart /> },
-  ];
+  const getNavItems = () => {
+    const baseItems = [
+      { path: '/home', label: 'Home', icon: <FaHome /> },
+      { path: '/filter', label: 'Explore', icon: <FaSearch /> },
+      { path: '/favorites', label: 'Favorites', icon: <FaHeart /> },
+    ];
+
+    if (user) {
+      // Add dashboard link for authenticated users
+      if (user.role === 'admin') {
+        baseItems.push({ path: '/admin/dashboard', label: 'Admin Dashboard', icon: <FaUser /> });
+      } else {
+        baseItems.push({ path: '/user-dashboard', label: 'Dashboard', icon: <FaUser /> });
+      }
+    }
+
+    return baseItems;
+  };
+
+  const navItems = getNavItems();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -61,7 +77,10 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2 text-sm text-gray-700">
                   <FaUser className="text-blue-600" />
-                  <span>{user.username}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{user.username}</span>
+                    <span className="text-xs text-gray-500 capitalize">{user.role}</span>
+                  </div>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -106,6 +125,30 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
               <span>{item.label}</span>
             </Link>
           ))}
+          
+          {/* Mobile Auth Section */}
+          {user && (
+            <div className="border-t border-gray-200 pt-2 mt-2">
+              <div className="flex items-center justify-between px-3 py-2">
+                <div className="flex items-center space-x-2 text-sm text-gray-700">
+                  <FaUser className="text-blue-600" />
+                  <div>
+                    <div className="font-medium">{user.username}</div>
+                    <div className="text-xs text-gray-500 capitalize">{user.role}</div>
+                  </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onLogout}
+                  className="flex items-center space-x-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm"
+                >
+                  <FaSignOutAlt />
+                  <span>Logout</span>
+                </motion.button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </motion.nav>
