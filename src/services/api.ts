@@ -292,42 +292,22 @@ adminApi.interceptors.response.use(
 );
 
 // Admin API functions
+// Admin API functions
 export const adminAPI = {
   // Dashboard Stats
   getUsersCount: async (): Promise<{ count: number }> => {
-    try {
-      const response = await adminApi.get('/admin/stats/users-count');
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        throw new Error('Unauthorized access - Admin role required');
-      }
-      throw new Error(error.response?.data?.message || 'Failed to fetch users count');
-    }
+    const response = await adminApi.get('/admin/stats/users-count');
+    return response.data;
   },
 
   getProjectsCount: async (): Promise<{ count: number }> => {
-    try {
-      const response = await adminApi.get('/admin/stats/projects-count');
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        throw new Error('Unauthorized access - Admin role required');
-      }
-      throw new Error(error.response?.data?.message || 'Failed to fetch projects count');
-    }
+    const response = await adminApi.get('/admin/stats/projects-count');
+    return response.data;
   },
 
   getProjectsByDomain: async (): Promise<Array<{ domain: string; count: number }>> => {
-    try {
-      const response = await adminApi.get('/admin/stats/projects-by-domain');
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        throw new Error('Unauthorized access - Admin role required');
-      }
-      throw new Error(error.response?.data?.message || 'Failed to fetch projects by domain');
-    }
+    const response = await adminApi.get('/admin/stats/projects-by-domain');
+    return response.data;
   },
 
   // Users Management
@@ -336,15 +316,8 @@ export const adminAPI = {
     email: string;
     role: string;
   }>> => {
-    try {
-      const response = await adminApi.get('/admin/users');
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        throw new Error('Unauthorized access - Admin role required');
-      }
-      throw new Error(error.response?.data?.message || 'Failed to fetch users');
-    }
+    const response = await adminApi.get('/admin/users');
+    return response.data;
   },
 
   // Projects Management
@@ -352,56 +325,45 @@ export const adminAPI = {
     pId: number;
     pName: string;
     domain: string;
-    difficulty: string;
+    diffLevel: number;
     rating: number;
     briefDes: string;
-    createdAt: string;
+    description: {
+      desIid: number;
+      wDescription: string;
+      bestTech: string;
+      softReq: string;
+      hardReq: string;
+    };
   }>> => {
-    try {
-      const response = await adminApi.get('/admin/projects');
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        throw new Error('Unauthorized access - Admin role required');
-      }
-      throw new Error(error.response?.data?.message || 'Failed to fetch projects');
-    }
+    const response = await adminApi.get('/admin/projects');
+    return response.data;
   },
 
+  // Add Project -> must send payload matching backend
   addProject: async (projectData: {
-    title: string;
-    briefDescription: string;
-    wholeDescription: string;
-    softwareRequired: string;
-    hardwareRequirements: string;
-    bestTech: string;
+    pName: string;
+    briefDes: string;
     domain: string;
-    difficulty: string;
+    diffLevel: number;
     rating: number;
+    description: {
+      wDescription: string;
+      bestTech: string;
+      softReq: string;
+      hardReq: string;
+    };
   }): Promise<{ success: boolean; message: string }> => {
-    try {
-      const response = await adminApi.post('/admin/projects', projectData);
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        throw new Error('Unauthorized access - Admin role required');
-      }
-      throw new Error(error.response?.data?.message || 'Failed to add project');
-    }
+    const response = await adminApi.post('/admin/projects', projectData);
+    return response.data;
   },
 
   deleteProject: async (pId: number): Promise<{ success: boolean; message: string }> => {
-    try {
-      const response = await adminApi.delete(`/admin/projects/${pId}`);
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        throw new Error('Unauthorized access - Admin role required');
-      }
-      throw new Error(error.response?.data?.message || 'Failed to delete project');
-    }
+    const response = await adminApi.delete(`/admin/projects/${pId}`);
+    return response.data;
   }
 };
+
 
 // Leave space for baseURL config
 // export const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/projectFilter'; 

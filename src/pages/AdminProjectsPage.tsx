@@ -1,11 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { FaProjectDiagram, FaPlus, FaTrash, FaEdit, FaExclamationTriangle, FaCheck, FaTimes, FaStar, FaCode, FaCog } from 'react-icons/fa';
-import { adminAPI } from '../services/api';
-import AdminLayout from './AdminLayout';
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  FaProjectDiagram,
+  FaPlus,
+  FaTrash,
+  FaEdit,
+  FaExclamationTriangle,
+  FaCheck,
+  FaTimes,
+  FaStar,
+  FaCode,
+  FaCog,
+} from "react-icons/fa";
+import { adminAPI } from "../services/api";
+import AdminLayout from "./AdminLayout";
 
-const domains = ['Web', 'AI/ML', 'IoT', 'Game', 'Android'];
-const difficulties = ['Beginner', 'Intermediate', 'Advance'];
+const domains = ["Web", "AI/ML", "IoT", "Game", "Android"];
+const difficulties = [
+  { label: "Beginner", value: 1 },
+  { label: "Intermediate", value: 2 },
+  { label: "Advance", value: 3 },
+];
 
 const AdminProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<any[]>([]);
@@ -15,28 +30,31 @@ const AdminProjectsPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
+
   const [form, setForm] = useState({
-    title: '',
-    briefDescription: '',
-    wholeDescription: '',
-    softwareRequired: '',
-    hardwareRequirements: '',
-    bestTech: '',
-    domain: '',
-    difficulty: '',
-    rating: '',
+    pName: "",
+    briefDes: "",
+    domain: "",
+    diffLevel: 1,
+    rating: 1,
+    description: {
+      wDescription: "",
+      softReq: "",
+      hardReq: "",
+      bestTech: "",
+    },
   });
 
   const loadProjects = async () => {
     setProjectsLoading(true);
     setError(null);
-    
+
     try {
       const projectsData = await adminAPI.getProjects();
       setProjects(projectsData);
     } catch (error: any) {
-      console.error('Projects loading error:', error);
-      setError(error.message || 'Failed to load projects');
+      console.error("Projects loading error:", error);
+      setError(error.message || "Failed to load projects");
     } finally {
       setProjectsLoading(false);
     }
@@ -46,21 +64,35 @@ const AdminProjectsPage: React.FC = () => {
     loadProjects();
   }, []);
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    if (["wDescription", "softReq", "hardReq", "bestTech"].includes(name)) {
+      setForm({
+        ...form,
+        description: { ...form.description, [name]: value },
+      });
+    } else if (name === "diffLevel" || name === "rating") {
+      setForm({ ...form, [name]: parseInt(value) });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const resetForm = () => {
     setForm({
-      title: '',
-      briefDescription: '',
-      wholeDescription: '',
-      softwareRequired: '',
-      hardwareRequirements: '',
-      bestTech: '',
-      domain: '',
-      difficulty: '',
-      rating: '',
+      pName: "",
+      briefDes: "",
+      domain: "",
+      diffLevel: 1,
+      rating: 1,
+      description: {
+        wDescription: "",
+        softReq: "",
+        hardReq: "",
+        bestTech: "",
+      },
     });
     setEditingProject(null);
     setShowForm(false);
@@ -71,40 +103,33 @@ const AdminProjectsPage: React.FC = () => {
     setSuccess(null);
     setError(null);
     setLoading(true);
-    
+
     try {
-      const projectData = {
-        ...form,
-        rating: parseInt(form.rating)
-      };
-      
-      await adminAPI.addProject(projectData);
-      setSuccess('Project added successfully!');
+      await adminAPI.addProject(form);
+      setSuccess("Project saved successfully!");
       resetForm();
-      loadProjects(); // Reload projects list
+      loadProjects();
     } catch (error: any) {
-      console.error('Add project error:', error);
-      setError(error.message || 'Failed to add project');
+      console.error("Save project error:", error);
+      setError(error.message || "Failed to save project");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteProject = async (pId: number) => {
-    if (!window.confirm('Are you sure you want to delete this project?')) {
-      return;
-    }
-    
+    if (!window.confirm("Are you sure you want to delete this project?")) return;
+
     setLoading(true);
     setError(null);
-    
+
     try {
       await adminAPI.deleteProject(pId);
-      setSuccess('Project deleted successfully!');
-      loadProjects(); // Reload projects list
+      setSuccess("Project deleted successfully!");
+      loadProjects();
     } catch (error: any) {
-      console.error('Delete project error:', error);
-      setError(error.message || 'Failed to delete project');
+      console.error("Delete project error:", error);
+      setError(error.message || "Failed to delete project");
     } finally {
       setLoading(false);
     }
@@ -113,43 +138,38 @@ const AdminProjectsPage: React.FC = () => {
   const handleEditProject = (project: any) => {
     setEditingProject(project);
     setForm({
-      title: project.pName || '',
-      briefDescription: project.briefDes || '',
-      wholeDescription: '',
-      softwareRequired: '',
-      hardwareRequirements: '',
-      bestTech: '',
-      domain: project.domain || '',
-      difficulty: project.difficulty || '',
-      rating: project.rating?.toString() || '',
+      pName: project.pName || "",
+      briefDes: project.briefDes || "",
+      domain: project.domain || "",
+      diffLevel: project.diffLevel || 1,
+      rating: project.rating || 1,
+      description: {
+        wDescription: project.description?.wDescription || "",
+        softReq: project.description?.softReq || "",
+        hardReq: project.description?.hardReq || "",
+        bestTech: project.description?.bestTech || "",
+      },
     });
     setShowForm(true);
   };
 
-  const getDifficultyColor = (difficulty: string | undefined | null) => {
-    if (!difficulty || typeof difficulty !== 'string') {
-      return 'bg-gray-100 text-gray-800';
-    }
-    
-    switch (difficulty.toLowerCase()) {
-      case 'beginner':
-        return 'bg-green-100 text-green-800';
-      case 'intermediate':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'advance':
-        return 'bg-red-100 text-red-800';
+  const getDifficultyColor = (level: number | undefined | null) => {
+    switch (level) {
+      case 1:
+        return "bg-green-100 text-green-800";
+      case 2:
+        return "bg-yellow-100 text-yellow-800";
+      case 3:
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   return (
     <AdminLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Projects Management</h1>
           <motion.button
@@ -159,328 +179,221 @@ const AdminProjectsPage: React.FC = () => {
             className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
           >
             <FaPlus />
-            <span>Add Project</span>
+            <span>{showForm ? "Close Form" : "Add Project"}</span>
           </motion.button>
         </div>
 
-        {/* Success/Error Messages */}
+        {/* Messages */}
         {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-3"
-          >
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-3">
             <FaCheck className="text-green-500 flex-shrink-0" />
             <span className="text-green-700">{success}</span>
-            <button
-              onClick={() => setSuccess(null)}
-              className="ml-auto text-green-500 hover:text-green-700"
-            >
+            <button onClick={() => setSuccess(null)} className="ml-auto text-green-500 hover:text-green-700">
               <FaTimes />
             </button>
-          </motion.div>
+          </div>
         )}
-
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3"
-          >
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3">
             <FaExclamationTriangle className="text-red-500 flex-shrink-0" />
             <span className="text-red-700">{error}</span>
-            <button
-              onClick={() => setError(null)}
-              className="ml-auto text-red-500 hover:text-red-700"
-            >
+            <button onClick={() => setError(null)} className="ml-auto text-red-500 hover:text-red-700">
               <FaTimes />
             </button>
-          </motion.div>
+          </div>
         )}
 
-        {/* Add/Edit Project Form */}
+        {/* Form */}
         {showForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="bg-white rounded-xl shadow-lg p-6 mb-8"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {editingProject ? 'Edit Project' : 'Add New Project'}
-              </h2>
-              <button
-                onClick={resetForm}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <FaTimes />
-              </button>
-            </div>
-
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
             <form onSubmit={handleAddProject} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                  <input
-                    name="title"
-                    value={form.title}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Domain</label>
-                  <select
-                    name="domain"
-                    value={form.domain}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="">Select Domain</option>
-                    {domains.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
-                  <select
-                    name="difficulty"
-                    value={form.difficulty}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="">Select Difficulty</option>
-                    {difficulties.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Rating (1-5)</label>
-                  <input
-                    name="rating"
-                    type="number"
-                    min="1"
-                    max="5"
-                    value={form.rating}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Brief Description</label>
-                  <textarea
-                    name="briefDescription"
-                    value={form.briefDescription}
-                    onChange={handleFormChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
+                <input
+                  name="pName"
+                  value={form.pName}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Whole Description</label>
-                  <textarea
-                    name="wholeDescription"
-                    value={form.wholeDescription}
-                    onChange={handleFormChange}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Domain</label>
+                <select
+                  name="domain"
+                  value={form.domain}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                >
+                  <option value="">Select Domain</option>
+                  {domains.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Software Required</label>
-                  <input
-                    name="softwareRequired"
-                    value={form.softwareRequired}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+                <select
+                  name="diffLevel"
+                  value={form.diffLevel}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                >
+                  {difficulties.map((d) => (
+                    <option key={d.value} value={d.value}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Hardware Requirements</label>
-                  <input
-                    name="hardwareRequirements"
-                    value={form.hardwareRequirements}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Rating (1-5)</label>
+                <input
+                  name="rating"
+                  type="number"
+                  min="1"
+                  max="5"
+                  value={form.rating}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Best Technology</label>
-                  <input
-                    name="bestTech"
-                    value={form.bestTech}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Brief Description</label>
+                <textarea
+                  name="briefDes"
+                  value={form.briefDes}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+              </div>
 
-                <div className="flex space-x-4">
-                  <motion.button
-                    type="submit"
-                    disabled={loading}
-                    whileHover={{ scale: loading ? 1 : 1.02 }}
-                    whileTap={{ scale: loading ? 1 : 0.98 }}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>{editingProject ? 'Updating...' : 'Adding...'}</span>
-                      </div>
-                    ) : (
-                      editingProject ? 'Update Project' : 'Add Project'
-                    )}
-                  </motion.button>
-                  
-                  <motion.button
-                    type="button"
-                    onClick={resetForm}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    Cancel
-                  </motion.button>
-                </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Whole Description</label>
+                <textarea
+                  name="wDescription"
+                  value={form.description.wDescription}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Software Required</label>
+                <input
+                  name="softReq"
+                  value={form.description.softReq}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Hardware Requirements</label>
+                <input
+                  name="hardReq"
+                  value={form.description.hardReq}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Best Technology</label>
+                <input
+                  name="bestTech"
+                  value={form.description.bestTech}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div className="md:col-span-2 flex space-x-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg"
+                >
+                  {editingProject ? "Update Project" : "Add Project"}
+                </button>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="px-4 py-2 border border-gray-300 rounded-lg"
+                >
+                  Cancel
+                </button>
               </div>
             </form>
-          </motion.div>
+          </div>
         )}
 
-        {/* Projects Table */}
+        {/* Table */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {projectsLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
-          ) : error ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="p-8 text-center"
-            >
-              <FaExclamationTriangle className="text-red-500 text-4xl mx-auto mb-4" />
-              <h3 className="text-red-800 font-semibold text-lg mb-2">Error Loading Projects</h3>
-              <p className="text-red-600 mb-4">{error}</p>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={loadProjects}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
-              >
-                Try Again
-              </motion.button>
-            </motion.div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center space-x-2">
-                        <FaProjectDiagram />
-                        <span>Project</span>
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center space-x-2">
-                        <FaCode />
-                        <span>Domain</span>
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center space-x-2">
-                        <FaCog />
-                        <span>Difficulty</span>
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center space-x-2">
-                        <FaStar />
-                        <span>Rating</span>
-                      </div>
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Project</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Domain</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Difficulty</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Rating</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {projects.map((project, index) => (
-                    <motion.tr
-                      key={project.pId}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="hover:bg-gray-50 transition-colors duration-200"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                  {projects.map((project) => (
+                    <tr key={project.pId}>
+                      <td className="px-6 py-4">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{project.pName || 'Untitled Project'}</div>
-                          <div className="text-sm text-gray-500 truncate max-w-xs">{project.briefDes || 'No description available'}</div>
+                          <div className="font-medium text-gray-900">{project.pName}</div>
+                          <div className="text-sm text-gray-500 truncate max-w-xs">{project.briefDes}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {project.domain || 'Unknown'}
+                      <td className="px-6 py-4">{project.domain}</td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(project.diffLevel)}`}
+                        >
+                          {
+                            difficulties.find((d) => d.value === project.diffLevel)?.label ||
+                            "Unknown"
+                          }
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getDifficultyColor(project.difficulty)}`}>
-                          {project.difficulty || 'Unknown'}
-                        </span>
+                      <td className="px-6 py-4 flex items-center space-x-1">
+                        <FaStar className="text-yellow-400" />
+                        <span>{project.rating}</span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-1">
-                          <FaStar className="text-yellow-400" />
-                          <span className="text-sm font-medium text-gray-900">{project.rating || 'N/A'}</span>
-                        </div>
+                      <td className="px-6 py-4">
+                        <button onClick={() => handleEditProject(project)} className="text-blue-600 mr-2">
+                          <FaEdit />
+                        </button>
+                        <button onClick={() => handleDeleteProject(project.pId)} className="text-red-600">
+                          <FaTrash />
+                        </button>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2">
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleEditProject(project)}
-                            className="text-blue-600 hover:text-blue-900 p-1"
-                            title="Edit Project"
-                          >
-                            <FaEdit />
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleDeleteProject(project.pId)}
-                            className="text-red-600 hover:text-red-900 p-1"
-                            title="Delete Project"
-                          >
-                            <FaTrash />
-                          </motion.button>
-                        </div>
-                      </td>
-                    </motion.tr>
+                    </tr>
                   ))}
                 </tbody>
               </table>
-              
+
               {projects.length === 0 && (
                 <div className="text-center py-12">
                   <FaProjectDiagram className="text-4xl mx-auto mb-4 text-gray-300" />
