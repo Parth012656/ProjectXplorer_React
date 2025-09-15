@@ -143,18 +143,6 @@ const AdminProjectsPage: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
   return (
     <AdminLayout>
       <motion.div
@@ -431,9 +419,6 @@ const AdminProjectsPage: React.FC = () => {
                       </div>
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -468,9 +453,6 @@ const AdminProjectsPage: React.FC = () => {
                           <FaStar className="text-yellow-400" />
                           <span className="text-sm font-medium text-gray-900">{project.rating || 'N/A'}</span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(project.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-2">
@@ -514,4 +496,4 @@ const AdminProjectsPage: React.FC = () => {
   );
 };
 
-export default AdminProjectsPage; 
+export default AdminProjectsPage;
