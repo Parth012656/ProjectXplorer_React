@@ -19,8 +19,8 @@ import ProjectDetailsModal from '../components/ProjectDetailsModal';
 // Area map for mapping domain string to numeric ID
 const areaMap: Record<string, number> = {
   'AI/ML': 1,
-  'IoT': 2,
-  'Web Development': 3,
+  'Web Development': 2,
+  'IoT': 3,
   'Game Development': 4,
   'Android Development': 5,
 };

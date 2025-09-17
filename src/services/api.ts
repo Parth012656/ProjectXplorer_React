@@ -361,7 +361,41 @@ export const adminAPI = {
   deleteProject: async (pId: number): Promise<{ success: boolean; message: string }> => {
     const response = await adminApi.delete(`/admin/projects/${pId}`);
     return response.data;
-  }
+  },
+  updateProject: async (pId: number, projectData: {
+    pName: string;
+    briefDes: string;
+    domain: string;
+    diffLevel: number;
+    rating: number;
+    areaId: number;
+    description: {
+      desIid?: number;
+      wDescription: string;
+      bestTech: string;
+      softReq: string;
+      hardReq: string;
+    };
+  }): Promise<{
+    pId: number;
+    pName: string;
+    briefDes: string;
+    domain: string;
+    diffLevel: number;
+    rating: number;
+    areaId: number;
+    description: {
+      desIid: number;
+      wDescription: string;
+      bestTech: string;
+      softReq: string;
+      hardReq: string;
+    };
+  }> => {
+    const response = await adminApi.put(`/admin/projects/${pId}`, projectData);
+    return response.data;
+  }  
+  
 };
 
 

@@ -9,18 +9,30 @@ import {
   FaCheck,
   FaTimes,
   FaStar,
-  FaCode,
-  FaCog,
-} from "react-icons/fa";
+} 
+from "react-icons/fa";
 import { adminAPI } from "../services/api";
 import AdminLayout from "./AdminLayout";
 
-const domains = ["Web", "AI/ML", "IoT", "Game", "Android"];
+const domains = ["AI_ML", "Web_Development", "Iot", "Game_Development", "App_development"];
+
 const difficulties = [
   { label: "Beginner", value: 1 },
   { label: "Intermediate", value: 2 },
   { label: "Advance", value: 3 },
 ];
+
+// 🔧 Helper: map domain → areaId
+const getAreaId = (domain: string) => {
+  switch (domain) {
+    case "AI_ML": return 1;
+    case "Web_Development": return 2;
+    case "Iot": return 3;
+    case "Game_Development": return 4;
+    case "App_development": return 5;
+    default: return 0;
+  }
+};
 
 const AdminProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<any[]>([]);
@@ -31,12 +43,15 @@ const AdminProjectsPage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
 
+  const formRef = React.useRef<HTMLDivElement>(null);
+
   const [form, setForm] = useState({
     pName: "",
     briefDes: "",
     domain: "",
     diffLevel: 1,
     rating: 1,
+    areaId: 0,
     description: {
       wDescription: "",
       softReq: "",
@@ -48,7 +63,6 @@ const AdminProjectsPage: React.FC = () => {
   const loadProjects = async () => {
     setProjectsLoading(true);
     setError(null);
-
     try {
       const projectsData = await adminAPI.getProjects();
       setProjects(projectsData);
@@ -60,14 +74,30 @@ const AdminProjectsPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
+  useEffect(() => { loadProjects(); }, []);
+
+  // Auto hide success after 3 seconds
+useEffect(() => {
+  if (success) {
+    const timer = setTimeout(() => setSuccess(null), 3000);
+    return () => clearTimeout(timer);
+  }
+}, [success]);
+
+// Auto hide error after 3 seconds (optional)
+useEffect(() => {
+  if (error) {
+    const timer = setTimeout(() => setError(null), 3000);
+    return () => clearTimeout(timer);
+  }
+}, [error]);
+
 
   const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
     if (["wDescription", "softReq", "hardReq", "bestTech"].includes(name)) {
       setForm({
         ...form,
@@ -75,6 +105,12 @@ const AdminProjectsPage: React.FC = () => {
       });
     } else if (name === "diffLevel" || name === "rating") {
       setForm({ ...form, [name]: parseInt(value) });
+    } else if (name === "domain") {
+      setForm({
+        ...form,
+        domain: value,
+        areaId: getAreaId(value),
+      });
     } else {
       setForm({ ...form, [name]: value });
     }
@@ -87,12 +123,8 @@ const AdminProjectsPage: React.FC = () => {
       domain: "",
       diffLevel: 1,
       rating: 1,
-      description: {
-        wDescription: "",
-        softReq: "",
-        hardReq: "",
-        bestTech: "",
-      },
+      areaId: 0,
+      description: { wDescription: "", softReq: "", hardReq: "", bestTech: "" },
     });
     setEditingProject(null);
     setShowForm(false);
@@ -103,7 +135,6 @@ const AdminProjectsPage: React.FC = () => {
     setSuccess(null);
     setError(null);
     setLoading(true);
-
     try {
       await adminAPI.addProject(form);
       setSuccess("Project saved successfully!");
@@ -112,17 +143,34 @@ const AdminProjectsPage: React.FC = () => {
     } catch (error: any) {
       console.error("Save project error:", error);
       setError(error.message || "Failed to save project");
+    } finally { setLoading(false); }
+  };
+
+  const handleUpdateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProject) return;
+  
+    setSuccess(null);
+    setError(null);
+    setLoading(true);
+    try {
+      await adminAPI.updateProject(editingProject.pId, form);
+      setSuccess("Project updated successfully!");
+      resetForm();
+      loadProjects();
+    } catch (error: any) {
+      console.error("Update project error:", error);
+      setError(error.message || "Failed to update project");
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleDeleteProject = async (pId: number) => {
     if (!window.confirm("Are you sure you want to delete this project?")) return;
-
     setLoading(true);
     setError(null);
-
     try {
       await adminAPI.deleteProject(pId);
       setSuccess("Project deleted successfully!");
@@ -130,9 +178,7 @@ const AdminProjectsPage: React.FC = () => {
     } catch (error: any) {
       console.error("Delete project error:", error);
       setError(error.message || "Failed to delete project");
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const handleEditProject = (project: any) => {
@@ -143,6 +189,7 @@ const AdminProjectsPage: React.FC = () => {
       domain: project.domain || "",
       diffLevel: project.diffLevel || 1,
       rating: project.rating || 1,
+      areaId: project.areaId || getAreaId(project.domain),
       description: {
         wDescription: project.description?.wDescription || "",
         softReq: project.description?.softReq || "",
@@ -151,18 +198,20 @@ const AdminProjectsPage: React.FC = () => {
       },
     });
     setShowForm(true);
+  
+    // 🔥 Auto-scroll to the form
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
+  
 
   const getDifficultyColor = (level: number | undefined | null) => {
     switch (level) {
-      case 1:
-        return "bg-green-100 text-green-800";
-      case 2:
-        return "bg-yellow-100 text-yellow-800";
-      case 3:
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      case 1: return "bg-green-100 text-green-800";
+      case 2: return "bg-yellow-100 text-yellow-800";
+      case 3: return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -186,12 +235,9 @@ const AdminProjectsPage: React.FC = () => {
         {/* Messages */}
         {success && (
           <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-3">
-            <FaCheck className="text-green-500 flex-shrink-0" />
-            <span className="text-green-700">{success}</span>
-            <button onClick={() => setSuccess(null)} className="ml-auto text-green-500 hover:text-green-700">
-              <FaTimes />
-            </button>
-          </div>
+          <FaCheck className="text-green-500 flex-shrink-0" />
+          <span className="text-green-700">{success}</span>
+        </div>
         )}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3">
@@ -205,141 +251,80 @@ const AdminProjectsPage: React.FC = () => {
 
         {/* Form */}
         {showForm && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <form onSubmit={handleAddProject} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-xl shadow-lg p-6 mb-8" ref={formRef}>
+            <form onSubmit={editingProject ? handleUpdateProject : handleAddProject} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Project Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
-                <input
-                  name="pName"
-                  value={form.pName}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  required
-                />
+                <input name="pName" value={form.pName} onChange={handleFormChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
               </div>
 
+              {/* Domain */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Domain</label>
-                <select
-                  name="domain"
-                  value={form.domain}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  required
-                >
+                <select name="domain" value={form.domain} onChange={handleFormChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
                   <option value="">Select Domain</option>
-                  {domains.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
+                  {domains.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
 
+              {/* Difficulty */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
-                <select
-                  name="diffLevel"
-                  value={form.diffLevel}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  required
-                >
-                  {difficulties.map((d) => (
-                    <option key={d.value} value={d.value}>
-                      {d.label}
-                    </option>
-                  ))}
+                <select name="diffLevel" value={form.diffLevel} onChange={handleFormChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                  {difficulties.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
                 </select>
               </div>
 
+              {/* Rating */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Rating (1-5)</label>
-                <input
-                  name="rating"
-                  type="number"
-                  min="1"
-                  max="5"
-                  value={form.rating}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  required
-                />
+                <input name="rating" type="number" min="1" max="5" value={form.rating} onChange={handleFormChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
               </div>
 
+              {/* Brief Description */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Brief Description</label>
-                <textarea
-                  name="briefDes"
-                  value={form.briefDes}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  required
-                />
+                <textarea name="briefDes" value={form.briefDes} onChange={handleFormChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
               </div>
 
+              {/* Whole Description */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Whole Description</label>
-                <textarea
-                  name="wDescription"
-                  value={form.description.wDescription}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  required
-                />
+                <textarea name="wDescription" value={form.description.wDescription} onChange={handleFormChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" required />
               </div>
 
+              {/* Software Required */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Software Required</label>
-                <input
-                  name="softReq"
-                  value={form.description.softReq}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
+                <input name="softReq" value={form.description.softReq} onChange={handleFormChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
               </div>
 
+              {/* Hardware Requirements */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Hardware Requirements</label>
-                <input
-                  name="hardReq"
-                  value={form.description.hardReq}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
+                <input name="hardReq" value={form.description.hardReq} onChange={handleFormChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
               </div>
 
+              {/* Best Technology */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Best Technology</label>
-                <input
-                  name="bestTech"
-                  value={form.description.bestTech}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
+                <input name="bestTech" value={form.description.bestTech} onChange={handleFormChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
               </div>
 
+              {/* Buttons */}
               <div className="md:col-span-2 flex space-x-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg"
-                >
-                  {editingProject ? "Update Project" : "Add Project"}
-                </button>
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="px-4 py-2 border border-gray-300 rounded-lg"
-                >
-                  Cancel
-                </button>
+              <button type="submit" disabled={loading} className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg">
+              {editingProject ? "Update Project" : "Add Project"}
+              </button>
+
+                <button type="button" onClick={resetForm} className="px-4 py-2 border border-gray-300 rounded-lg">Cancel</button>
               </div>
             </form>
           </div>
         )}
 
-        {/* Table */}
+        {/* Projects Table */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {projectsLoading ? (
             <div className="flex justify-center items-center h-64">
@@ -358,42 +343,57 @@ const AdminProjectsPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {projects.map((project) => (
-                    <tr key={project.pId}>
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="font-medium text-gray-900">{project.pName}</div>
-                          <div className="text-sm text-gray-500 truncate max-w-xs">{project.briefDes}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">{project.domain}</td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(project.diffLevel)}`}
-                        >
-                          {
-                            difficulties.find((d) => d.value === project.diffLevel)?.label ||
-                            "Unknown"
-                          }
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 flex items-center space-x-1">
-                        <FaStar className="text-yellow-400" />
-                        <span>{project.rating}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button onClick={() => handleEditProject(project)} className="text-blue-600 mr-2">
-                          <FaEdit />
-                        </button>
-                        <button onClick={() => handleDeleteProject(project.pId)} className="text-red-600">
-                          <FaTrash />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+  {projects.map((project) => (
+    <React.Fragment key={project.pId}>
+      <tr>
+        <td className="px-6 py-4">
+          <div>
+            <div className="font-medium text-gray-900">{project.pName}</div>
+            <div className="text-sm text-gray-500 truncate max-w-xs">{project.briefDes}</div>
+          </div>
+        </td>
+        <td className="px-6 py-4">{project.domain}</td>
+        <td className="px-6 py-4">
+          <span
+            className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(project.diffLevel)}`}
+          >
+            {difficulties.find((d) => d.value === project.diffLevel)?.label || "Unknown"}
+          </span>
+        </td>
+        <td className="px-6 py-4 flex items-center space-x-1">
+          <FaStar className="text-yellow-400" />
+          <span>{project.rating}</span>
+        </td>
+        <td className="px-6 py-4">
+          <button
+            onClick={() => handleEditProject(project)}
+            className="text-blue-600 mr-2"
+          >
+            <FaEdit />
+          </button>
+          <button
+            onClick={() => handleDeleteProject(project.pId)}
+            className="text-red-600"
+          >
+            <FaTrash />
+          </button>
+        </td>
+      </tr>
 
+      {editingProject?.pId === project.pId && (
+        <tr>
+          <td colSpan={5}>
+            <form onSubmit={handleUpdateProject} className="p-4 bg-gray-50 rounded-lg">
+              {/* same form fields here but compact */}
+            </form>
+          </td>
+        </tr>
+      )}
+    </React.Fragment>
+  ))}
+</tbody>
+
+              </table>
               {projects.length === 0 && (
                 <div className="text-center py-12">
                   <FaProjectDiagram className="text-4xl mx-auto mb-4 text-gray-300" />
