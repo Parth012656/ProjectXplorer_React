@@ -12,24 +12,47 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
   const location = useLocation();
 
+  // const getNavItems = () => {
+  //   const baseItems = [
+  //     { path: '/home', label: 'Home', icon: <FaHome /> },
+  //     { path: '/filter', label: 'Explore', icon: <FaSearch /> },
+  //     { path: '/favorites', label: 'Favorites', icon: <FaHeart /> },
+  //   ];
+
+  //   if (user) {
+  //     // Add dashboard link for authenticated users
+  //     if (user.role === 'admin') {
+  //       baseItems.push({ path: '/admin/dashboard', label: 'Admin Dashboard', icon: <FaUser /> });
+  //     } else {
+  //       baseItems.push({ path: '/user-dashboard', label: 'Dashboard', icon: <FaUser /> });
+  //     }
+  //   }
+
+  //   return baseItems;
+  // };
+
   const getNavItems = () => {
     const baseItems = [
-      { path: '/home', label: 'Home', icon: <FaHome /> },
       { path: '/filter', label: 'Explore', icon: <FaSearch /> },
       { path: '/favorites', label: 'Favorites', icon: <FaHeart /> },
     ];
-
+  
+    if (!user) {
+      // Only show Home if not logged in
+      baseItems.unshift({ path: '/home', label: 'Home', icon: <FaHome /> });
+    }
+  
     if (user) {
-      // Add dashboard link for authenticated users
       if (user.role === 'admin') {
         baseItems.push({ path: '/admin/dashboard', label: 'Admin Dashboard', icon: <FaUser /> });
       } else {
         baseItems.push({ path: '/user-dashboard', label: 'Dashboard', icon: <FaUser /> });
       }
     }
-
+  
     return baseItems;
   };
+  
 
   const navItems = getNavItems();
 

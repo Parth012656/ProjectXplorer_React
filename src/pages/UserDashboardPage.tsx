@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaUser, FaSignOutAlt, FaCog, FaHeart, FaSearch } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt, FaHeart, FaSearch } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 
@@ -66,11 +66,11 @@ const UserDashboardPage: React.FC<UserDashboardPageProps> = ({ onLogout }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 justify-items-center"
         >
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="bg-white rounded-lg shadow-sm p-6 cursor-pointer"
+            className="bg-white rounded-lg shadow-sm p-6 cursor-pointer w-full max-w-sm"
             onClick={handleNavigateToFilter}
           >
             <div className="flex items-center space-x-4">
@@ -86,7 +86,7 @@ const UserDashboardPage: React.FC<UserDashboardPageProps> = ({ onLogout }) => {
 
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="bg-white rounded-lg shadow-sm p-6 cursor-pointer"
+            className="bg-white rounded-lg shadow-sm p-6 cursor-pointer w-full max-w-sm"
             onClick={handleNavigateToFavorites}
           >
             <div className="flex items-center space-x-4">
@@ -99,36 +99,35 @@ const UserDashboardPage: React.FC<UserDashboardPageProps> = ({ onLogout }) => {
               </div>
             </div>
           </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-white rounded-lg shadow-sm p-6 cursor-pointer"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-gray-100 rounded-lg">
-                <FaCog className="text-gray-600 text-xl" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Settings</h3>
-                <p className="text-gray-600 text-sm">Manage your account settings</p>
-              </div>
-            </div>
-          </motion.div>
         </motion.div>
 
-        {/* Recent Activity */}
+        {/* ProjectXplorer Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-lg shadow-sm p-6"
+          className="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg shadow-md text-center"
         >
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
-          <div className="text-center py-8">
-            <p className="text-gray-500">No recent activity to show</p>
-            <p className="text-gray-400 text-sm mt-2">Start exploring projects to see your activity here</p>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">ProjectXplorer Stats</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
+              <p className="text-3xl font-bold text-blue-600">124</p>
+              <p className="text-gray-700 mt-2">Projects Completed This Week</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
+              <p className="text-3xl font-bold text-red-600">ChatGPT Clone</p>
+              <p className="text-gray-700 mt-2">Most Favorited Project</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow duration-200">
+              <p className="text-3xl font-bold text-green-600">542</p>
+              <p className="text-gray-700 mt-2">Total Active Users</p>
+            </div>
           </div>
+          <p className="text-gray-600 mt-4 text-sm italic">
+            Keep exploring, building, and marking your favorites!
+          </p>
         </motion.div>
+
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ import AdminUsersPage from './pages/AdminUsersPage';
 import UserDashboardPage from './pages/UserDashboardPage';
 import { User, AuthUser } from './types';
 import { authAPI } from './services/api';
+import SignUpPage from './pages/SignUpPage';
 
 function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -101,6 +102,7 @@ function App() {
           <Route path="/landing" element={<LandingPage />} />
           {/* Login Page */}
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/register" element={<SignUpPage />} />
           {/* Home Page */}
           <Route path="/" element={<Navigate to="/landing" replace />} />
           <Route path="/home" element={<HomePage />} />

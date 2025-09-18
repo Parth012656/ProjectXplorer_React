@@ -232,7 +232,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           </div>
 
           {/* Forgot Password */}
-          <div className="mt-4 text-center">
+          {/* <div className="mt-4 text-center">
             <button
               onClick={() => navigate('/forgot-password')}
               className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
@@ -240,7 +240,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             >
               Forgot your password?
             </button>
-          </div>
+          </div> */}
         </motion.div>
       </motion.div>
     </div>

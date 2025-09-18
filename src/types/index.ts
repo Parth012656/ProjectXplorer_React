@@ -50,8 +50,21 @@ export interface LoginResponse {
 }
 
 export interface AuthUser {
-  token: string;
+  id?: number;              // keep optional for now
   username: string;
+  email?: string;           // keep optional for now
   role: string;
+  token: string;
   isAuthenticated: boolean;
-} 
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface RegisterResponse {
+  message: string; // ✅ success/failure messages
+}

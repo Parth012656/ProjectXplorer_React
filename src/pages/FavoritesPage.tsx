@@ -78,7 +78,7 @@ const FavoritesPage: React.FC = () => {
           className="mb-8"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            {/* <div className="flex items-center space-x-4">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -88,7 +88,7 @@ const FavoritesPage: React.FC = () => {
                 <FaArrowLeft />
                 <span>Back to Home</span>
               </motion.button>
-            </div>
+            </div> */}
 
             {favorites.length > 0 && (
               <motion.button
