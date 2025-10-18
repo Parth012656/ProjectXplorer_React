@@ -14,7 +14,25 @@ from "react-icons/fa";
 import { adminAPI } from "../services/api";
 import AdminLayout from "./AdminLayout";
 
-const domains = ["AI_ML", "Web_Development", "Iot", "Game_Development", "App_development"];
+// Friendly labels shown in the dropdown
+const domains = ["AI/ML", "Web Development", "Iot", "Game Development", "App development"];
+
+// Map friendly -> backend values (what the server expects)
+const friendlyToBackend: Record<string, string> = {
+  'AI/ML': 'AI/ML',
+  'Web Development': 'Web Development',
+  'Iot': 'IoT',
+  'Game Development': 'Game Dev',
+  'App development': 'Android Dev',
+};
+
+// Reverse mapping backend -> friendly
+const backendToFriendly: Record<string, string> = Object.fromEntries(
+  Object.entries(friendlyToBackend).map(([k, v]) => [v, k])
+);
+
+const toBackendDomain = (friendly: string) => friendlyToBackend[friendly] ?? friendly;
+const toFriendlyDomain = (backend: string) => backendToFriendly[backend] ?? backend;
 
 const difficulties = [
   { label: "Beginner", value: 1 },
@@ -24,7 +42,9 @@ const difficulties = [
 
 // 🔧 Helper: map domain → areaId
 const getAreaId = (domain: string) => {
-  switch (domain) {
+  // Accept either friendly (AI_ML) or backend (AI/ML) values
+  const friendly = backendToFriendly[domain] ?? domain;
+  switch (friendly) {
     case "AI_ML": return 1;
     case "Web_Development": return 2;
     case "Iot": return 3;
@@ -147,7 +167,13 @@ useEffect(() => {
     setError(null);
     setLoading(true);
     try {
-      await adminAPI.addProject(form);
+      // Convert friendly domain to backend value and compute areaId
+      const payload = {
+        ...form,
+        domain: toBackendDomain(form.domain),
+        areaId: getAreaId(form.domain),
+      };
+      await adminAPI.addProject(payload);
       setSuccess("Project saved successfully!");
       resetForm();
       loadProjects();
@@ -165,7 +191,12 @@ useEffect(() => {
     setError(null);
     setLoading(true);
     try {
-      await adminAPI.updateProject(editingProject.pId, form);
+      const payload = {
+        ...form,
+        domain: toBackendDomain(form.domain),
+        areaId: getAreaId(form.domain),
+      };
+      await adminAPI.updateProject(editingProject.pId, payload);
       setSuccess("Project updated successfully!");
       resetForm();
       loadProjects();
@@ -194,13 +225,14 @@ useEffect(() => {
 
   const handleEditProject = (project: any) => {
     setEditingProject(project);
+    const friendly = toFriendlyDomain(project.domain || project.domain);
     setForm({
       pName: project.pName || "",
       briefDes: project.briefDes || "",
-      domain: project.domain || "",
+      domain: friendly || '',
       diffLevel: project.diffLevel || 1,
       rating: project.rating || 1,
-      areaId: project.areaId || getAreaId(project.domain),
+      areaId: project.areaId || getAreaId(friendly),
       description: {
         wDescription: project.description?.wDescription || "",
         softReq: project.description?.softReq || "",
@@ -369,7 +401,7 @@ useEffect(() => {
             <div className="text-sm text-gray-500 truncate max-w-xs">{project.briefDes}</div>
           </div>
         </td>
-        <td className="px-6 py-4">{project.domain}</td>
+  <td className="px-6 py-4">{toFriendlyDomain(project.domain)}</td>
         <td className="px-6 py-4">
           <span
             className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(project.diffLevel)}`}
