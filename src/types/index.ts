@@ -46,6 +46,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   username: string;
+  // backend may send either `roles` or `role` (legacy). Accept both but prefer `role`.
   role: string;
 }
 

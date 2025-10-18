@@ -43,7 +43,8 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
     }
   
     if (user) {
-      if (user.role === 'admin') {
+      const userRole = (user.role || '').toUpperCase();
+      if (userRole === 'ROLE_ADMIN') {
         baseItems.push({ path: '/admin/dashboard', label: 'Admin Dashboard', icon: <FaUser /> });
       } else {
         baseItems.push({ path: '/user-dashboard', label: 'Dashboard', icon: <FaUser /> });

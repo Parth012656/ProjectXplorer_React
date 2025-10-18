@@ -25,7 +25,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     const storedUser = authAPI.getStoredUser();
     if (storedUser) {
       // Redirect based on role
-      if (storedUser.role === 'admin') {
+      if (storedUser.role === 'ROLE_ADMIN') {
         navigate('/admin/dashboard');
       } else {
         navigate('/user-dashboard');
@@ -63,30 +63,67 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     setError('');
 
     try {
-      const response = await authAPI.login(formData);
+      // const response = await authAPI.login(formData);
       
-      // Store authentication data
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('username', response.username);
-      localStorage.setItem('role', response.role);
+      // // Store authentication data
+      // localStorage.setItem('token', response.token);
+      // localStorage.setItem('username', response.username);
+      // localStorage.setItem('role', response.role);
 
-      // Create user object
+      // // Create user object
+      // const user: AuthUser = {
+      //   token: response.token,
+      //   username: response.username,
+      //   role: response.role,
+      //   isAuthenticated: true,
+      // };
+
+      // // Update app state
+      // onLogin(user);
+
+      // // Redirect based on role
+      // if (response.role === 'admin') {
+      //   navigate('/admin/dashboard');
+      // } else {
+      //   navigate('/user-dashboard');
+      // }
+
+            const response = await authAPI.login(formData);
+
+      // Normalize role: backend may return `role` or `roles` (or nothing).
+      // Ensure we always store a string (uppercase) or empty string as default.
+  const rawRole = (response as any).role ?? (response as any).roles ?? '';
+  const rawRoleStr = String(rawRole || '');
+  const roleUpper = rawRoleStr.toUpperCase();
+  // Ensure frontend uses ROLE_<NAME> format (e.g. ROLE_ADMIN)
+  const normalizedRole = roleUpper ? (roleUpper.startsWith('ROLE_') ? roleUpper : `ROLE_${roleUpper}`) : '';
+
+      // Extract username: backend may return `username` or `sub`.
+      const username = response.username || (response as any).sub || 'User';
+
+      // Store authentication data (ensure we write strings)
+      localStorage.setItem('token', String(response.token));
+      localStorage.setItem('username', String(username));
+  localStorage.setItem('role', normalizedRole);
+
+      // Create user object with normalized role (empty string when unknown)
       const user: AuthUser = {
-        token: response.token,
-        username: response.username,
-        role: response.role,
+        token: String(response.token),
+        username: String(username),
+  role: normalizedRole,
         isAuthenticated: true,
       };
 
       // Update app state
       onLogin(user);
 
-      // Redirect based on role
-      if (response.role === 'admin') {
+      // Redirect based on normalized role
+      if (user.role === 'ROLE_ADMIN') {
         navigate('/admin/dashboard');
       } else {
         navigate('/user-dashboard');
       }
+
 
     } catch (error: any) {
       console.error('Login error:', error);

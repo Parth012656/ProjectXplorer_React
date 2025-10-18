@@ -86,7 +86,7 @@ function App() {
       return <Navigate to="/login" replace />;
     }
 
-    if (requireAdmin && user?.role !== 'admin') {
+    if (requireAdmin && (user?.role || '') !== 'ROLE_ADMIN') {
       return <Navigate to="/user-dashboard" replace />;
     }
 

@@ -59,14 +59,18 @@ import {
     getStoredUser: (): AuthUser | null => {
       const token = localStorage.getItem('token');
       const username = localStorage.getItem('username');
-      const role = localStorage.getItem('role');
-      if (token && username && role) {
+      // prefer `role` key but accept legacy `roles`
+  const storedRole = localStorage.getItem('role') ?? localStorage.getItem('roles') ?? '';
+  const storedRoleStr = String(storedRole || '');
+  const roleUpper = storedRoleStr.toUpperCase();
+  const role = roleUpper ? (roleUpper.startsWith('ROLE_') ? roleUpper : `ROLE_${roleUpper}`) : '';
+      if (token && username) {
         return {
-          token,
-          username,
-          role,
+          token: String(token),
+          username: String(username),
+          role: role || '',
           isAuthenticated: true,
-        } as AuthUser; // ✅ type-cast ensures no TS error
+        } as AuthUser;
       }
       return null;
     },
@@ -255,7 +259,23 @@ export const adminAPI = {
 
   getProjectsByDomain: async (): Promise<Array<{ domain: string; count: number }>> => {
     const response = await adminApi.get('/admin/stats/projects-by-domain');
-    return response.data;
+    // response.data is expected to be an object like { "AI/ML": 35, "Android Dev": 40, ... }
+    const raw: Record<string, number> = response.data || {};
+
+    const domainMap: Record<string, string> = {
+      'AI/ML': 'Artificial Intelligence and Machine Learning',
+      'Android Dev': 'Android Development',
+      'Game Devp': 'Game Development',
+      'Web Development': 'Web Development',
+      'IoT': 'Internet of Things (IoT)'
+    };
+
+    const transformed: Array<{ domain: string; count: number }> = Object.entries(raw).map(([key, count]) => ({
+      domain: domainMap[key] ?? key,
+      count: Number(count) || 0,
+    }));
+
+    return transformed;
   },
 
   // Users Management

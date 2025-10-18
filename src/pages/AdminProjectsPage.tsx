@@ -42,6 +42,9 @@ const AdminProjectsPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
+  // Pagination
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const formRef = React.useRef<HTMLDivElement>(null);
 
@@ -75,6 +78,14 @@ const AdminProjectsPage: React.FC = () => {
   };
 
   useEffect(() => { loadProjects(); }, []);
+
+  // Reset or clamp currentPage if projects length changes
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(projects.length / itemsPerPage));
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [projects.length]);
 
   // Auto hide success after 3 seconds
 useEffect(() => {
@@ -215,6 +226,11 @@ useEffect(() => {
     }
   };
 
+  // Pagination calculations (keep outside of JSX)
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const endIdx = currentPage * itemsPerPage;
+  const paginatedProjects = projects.slice(startIdx, endIdx);
+
   return (
     <AdminLayout>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
@@ -343,7 +359,8 @@ useEffect(() => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-  {projects.map((project) => (
+
+  {paginatedProjects.map((project) => (
     <React.Fragment key={project.pId}>
       <tr>
         <td className="px-6 py-4">
@@ -399,6 +416,39 @@ useEffect(() => {
                   <FaProjectDiagram className="text-4xl mx-auto mb-4 text-gray-300" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
                   <p className="text-gray-500">Get started by adding your first project.</p>
+                </div>
+              )}
+              {/* Pagination Controls */}
+              {projects.length > 0 && (
+                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+                  <div>
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 mr-2 rounded ${currentPage === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-600 text-white'}`}
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(Math.ceil(projects.length / itemsPerPage), p + 1))}
+                      disabled={currentPage === Math.ceil(projects.length / itemsPerPage)}
+                      className={`px-3 py-1 ml-2 rounded ${currentPage === Math.ceil(projects.length / itemsPerPage) ? 'bg-gray-200 text-gray-500' : 'bg-blue-600 text-white'}`}
+                    >
+                      Next
+                    </button>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    {Array.from({ length: Math.max(1, Math.ceil(projects.length / itemsPerPage)) }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1 rounded ${page === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

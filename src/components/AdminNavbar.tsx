@@ -51,7 +51,7 @@ const AdminNavbar: React.FC = () => {
                   <FaUser className="text-blue-600" />
                   <div className="flex flex-col">
                     <span className="font-medium">{user.username}</span>
-                    <span className="text-xs text-gray-500 capitalize">{user.role}</span>
+                    <span className="text-xs text-gray-500 capitalize">{(user.role || '').toLowerCase()}</span>
                   </div>
                 </div>
               )}
