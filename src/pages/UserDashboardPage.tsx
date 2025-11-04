@@ -45,10 +45,8 @@ const UserDashboardPage: React.FC<UserDashboardPageProps> = ({ onLogout }) => {
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-gray-600">
-                <FaUser />
-                <span className="text-sm">{user?.role}</span>
               </div>
-              <motion.button
+              {/* <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLogout}
@@ -56,7 +54,7 @@ const UserDashboardPage: React.FC<UserDashboardPageProps> = ({ onLogout }) => {
               >
                 <FaSignOutAlt />
                 <span>Logout</span>
-              </motion.button>
+              </motion.button> */}
             </div>
           </div>
         </motion.div>

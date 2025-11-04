@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import PropyChatbot from './components/PropyChatbot';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
@@ -97,6 +98,7 @@ function App() {
     <Router>
       <div className="App">
         <NavbarWrapper />
+        <PropyChatbot user={user} />
         <Routes>
           {/* Landing Page */}
           <Route path="/landing" element={<LandingPage />} />
