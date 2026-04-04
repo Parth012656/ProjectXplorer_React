@@ -14,7 +14,7 @@ import {
    ============================= */
 
    const authAxios = axios.create({
-    baseURL: 'http://localhost:8080/api/auth',
+    baseURL: process.env.REACT_APP_API_URL+'/api/auth',
     headers: { 'Content-Type': 'application/json' },
   });
   
@@ -84,7 +84,7 @@ import {
    PROJECT FILTER API
    ============================= */
 
-const BASE_URL = 'http://localhost:8080/projectFilter'; // TODO: move to env
+const BASE_URL = process.env.REACT_APP_API_URL+'/projectFilter'; // TODO: move to env
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 10000,
@@ -168,7 +168,52 @@ export const getProjectDescriptionById = async (DescriptionId: number) => {
 };
 
 // Favorites using localStorage
-export const projectAPI = {
+// export const projectAPI = {
+//   getProjectsByAll,
+//   getProjectsByRatingArea,
+//   getProjectsByAreaDifficulty,
+//   getProjectsByDifficultyRating,
+//   getProjectsByRating,
+//   getProjectsByDifficulty,
+//   getProjectsByArea,
+//   getProjectDescriptionById,
+
+//   getFavoriteProjects: async (userId: string) => {
+//     const favs = localStorage.getItem(`favorites_${userId}`);
+//     if (!favs) return [];
+//     try {
+//       return JSON.parse(favs);
+//     } catch {
+//       return [];
+//     }
+//   },
+
+//   toggleFavorite: async (project: any, userId: string) => {
+//     const key = `favorites_${userId}`;
+//     let arr: any[] = [];
+//     const favs = localStorage.getItem(key);
+//     if (favs) {
+//       try {
+//         arr = JSON.parse(favs);
+//       } catch {
+//         arr = [];
+//       }
+//     }
+//     const idx = arr.findIndex(
+//       (p) => 
+//         (p.pId !== undefined && project.pId !== undefined && p.pId === project.pId) ||
+//         (p.id !== undefined && project.id !== undefined && p.id === project.id)
+//     );
+//     if (idx !== -1) {
+//       arr.splice(idx, 1);
+//     } else {
+//       arr.push(project);
+//     }
+//     localStorage.setItem(key, JSON.stringify(arr));
+//   },
+// };
+export const favoriteAPI = {
+
   getProjectsByAll,
   getProjectsByRatingArea,
   getProjectsByAreaDifficulty,
@@ -178,47 +223,129 @@ export const projectAPI = {
   getProjectsByArea,
   getProjectDescriptionById,
 
-  getFavoriteProjects: async (userId: string) => {
-    const favs = localStorage.getItem(`favorites_${userId}`);
-    if (!favs) return [];
+  // 🔥 NEW FAVORITES LOGIC
+
+  getFavoriteProjects: async () => {
+    const token = localStorage.getItem("token");
+
+    // ✅ Logged-in → backend
+    if (token) {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_URL}/api/favorites`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to fetch favorites");
+
+      return await res.json();
+    }
+
+    // ❌ Guest → localStorage
     try {
-      return JSON.parse(favs);
+      return JSON.parse(localStorage.getItem("favorites_guest") || "[]");
     } catch {
       return [];
     }
   },
 
-  toggleFavorite: async (project: any, userId: string) => {
-    const key = `favorites_${userId}`;
-    let arr: any[] = [];
-    const favs = localStorage.getItem(key);
-    if (favs) {
-      try {
-        arr = JSON.parse(favs);
-      } catch {
-        arr = [];
-      }
+  toggleFavorite: async (project: any) => {
+    const token = localStorage.getItem("token");
+
+    // ✅ Logged-in → backend
+    if (token) {
+      await fetch(
+        `${process.env.REACT_APP_API_URL}/api/favorites/toggle?projectId=${project.pId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      return;
     }
-    const idx = arr.findIndex(
-      (p) => 
-        (p.pId !== undefined && project.pId !== undefined && p.pId === project.pId) ||
-        (p.id !== undefined && project.id !== undefined && p.id === project.id)
-    );
-    if (idx !== -1) {
-      arr.splice(idx, 1);
+
+    // ❌ Guest → localStorage
+    let arr: any[] = [];
+
+    try {
+      arr = JSON.parse(localStorage.getItem("favorites_guest") || "[]");
+    } catch {
+      arr = [];
+    }
+
+    const exists = arr.find((p: any) => p.pId === project.pId);
+
+    if (exists) {
+      arr = arr.filter((p: any) => p.pId !== project.pId);
     } else {
       arr.push(project);
     }
-    localStorage.setItem(key, JSON.stringify(arr));
+
+    localStorage.setItem("favorites_guest", JSON.stringify(arr));
   },
+
+  // 🔥 SYNC AFTER LOGIN
+  syncGuestFavorites: async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const guestFavs = JSON.parse(localStorage.getItem("favorites_guest") || "[]");
+
+    for (const project of guestFavs) {
+      await fetch(
+        `${process.env.REACT_APP_API_URL}/api/favorites/toggle?projectId=${project.pId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+    }
+
+    localStorage.removeItem("favorites_guest");
+  },
+
+clearAllFavorites: async () => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    localStorage.removeItem("favorites_guest");
+    return;
+  }
+
+  const res = await fetch(
+    `${process.env.REACT_APP_API_URL}/api/favorites/clear`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("ERROR:", text);
+    throw new Error("Failed to clear favorites");
+  }
+}
+
 };
+
 
 /* =============================
    ADMIN API
    ============================= */
-
 const adminApi = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  
+  baseURL: process.env.REACT_APP_API_URL + '/api',
   timeout: 10000,
 });
 

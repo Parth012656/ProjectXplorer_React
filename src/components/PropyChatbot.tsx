@@ -10,7 +10,7 @@ interface Message {
   confidence?: number;
 }
 
-const API_URL = 'http://localhost:5001/api/ask';
+const API_URL = process.env.REACT_APP_API_URL + '/api/propy/ask';
 
 const PropyChatbot: React.FC<{ user: AuthUser | null }> = ({ user }) => {
   const location = useLocation();

@@ -4,7 +4,7 @@ import { FaUser, FaSignOutAlt, FaHeart, FaSearch } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
 
-interface UserDashboardPageProps {
+interface UserDashboardPageProps {  
   onLogout: () => void;
 }
 

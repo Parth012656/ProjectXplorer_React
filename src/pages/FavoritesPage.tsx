@@ -5,9 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
 import ProjectDetailsModal from '../components/ProjectDetailsModal';
 import { Project } from '../types';
-import { projectAPI, getProjectsByAll, getProjectDescriptionById } from '../services/api';
+import { favoriteAPI, getProjectsByAll, getProjectDescriptionById } from '../services/api';
 
-const FavoritesPage: React.FC = () => {
+const FavoritesPage: React.FC = () => {  
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,26 +19,55 @@ const FavoritesPage: React.FC = () => {
     loadFavorites();
   }, []);
 
-  const loadFavorites = async () => {
-    try {
-      setLoading(true);
-      const favorites = await projectAPI.getFavoriteProjects('1');
-      setFavorites(favorites);
-    } catch (error) {
-      console.error('Error loading favorites:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const loadFavorites = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const favorites = await projectAPI.getFavoriteProjects('1');
+  //     setFavorites(favorites);
+  //   } catch (error) {
+  //     console.error('Error loading favorites:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  const handleFavoriteToggle = async (project: Project) => {
-    try {
-      await projectAPI.toggleFavorite(project, '1');
-      loadFavorites(); // Reload favorites after toggle
-    } catch (error) {
-      console.error('Error removing favorite:', error);
-    }
-  };
+  const loadFavorites = async () => {
+  try {
+    setLoading(true);
+    const favs = await favoriteAPI.getFavoriteProjects();
+    setFavorites(favs);
+  } catch (error) {
+    console.error('Error loading favorites:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+  // const handleFavoriteToggle = async (project: Project) => {
+  //   try {
+  //     await projectAPI.toggleFavorite(project, '1');
+  //     loadFavorites(); // Reload favorites after toggle
+  //   } catch (error) {
+  //     console.error('Error removing favorite:', error);
+  //   }
+  // };
+const handleFavoriteToggle = async (project: Project) => {
+  try {
+    await favoriteAPI.toggleFavorite(project);
+
+    // instant UI update (no reload lag)
+    setFavorites(prev => {
+      const exists = prev.some(p => p.pId === project.pId);
+      if (exists) {
+        return prev.filter(p => p.pId !== project.pId);
+      } else {
+        return [...prev, project];
+      }
+    });
+
+  } catch (error) {
+    console.error('Error toggling favorite:', error);
+  }
+};
 
   const handleProjectClick = async (project: Project) => {
     setSelectedProject(project);
@@ -58,15 +87,35 @@ const FavoritesPage: React.FC = () => {
     setProjectDetails(null);
   };
 
-  const handleClearAllFavorites = async () => {
-    try {
-      setFavorites([]);
-      localStorage.setItem('favorites_1', JSON.stringify([]));
-      window.dispatchEvent(new Event('favorites:clearAll'));
-    } catch (error) {
-      console.error('Error clearing favorites:', error);
-    }
-  };
+  // const handleClearAllFavorites = async () => {
+  //   try {
+  //     setFavorites([]);
+  //     localStorage.setItem('favorites_1', JSON.stringify([]));
+  //     window.dispatchEvent(new Event('favorites:clearAll'));
+  //   } catch (error) {
+  //     console.error('Error clearing favorites:', error);
+  //   }
+  // };
+
+//   const handleClearAllFavorites = () => {
+//   setFavorites([]);
+
+//   if (!localStorage.getItem("token")) {
+//     localStorage.removeItem("favorites_guest");
+//   }
+// };
+
+const handleClearAllFavorites = async () => {
+  try {
+    if (!window.confirm("Clear all favorites?")) return;
+
+    await favoriteAPI.clearAllFavorites();
+
+    setFavorites([]); // clear UI
+  } catch (error) {
+    console.error("Failed to clear favorites", error);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">

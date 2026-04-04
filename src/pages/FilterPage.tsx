@@ -13,7 +13,7 @@ import {
   getProjectsByDifficulty,
   getProjectsByArea,
   getProjectDescriptionById,
-  projectAPI,
+  favoriteAPI
 } from '../services/api';
 import ProjectDetailsModal from '../components/ProjectDetailsModal';
 // Area map for mapping domain string to numeric ID
@@ -57,9 +57,9 @@ const FilterPage: React.FC = () => {
   useEffect(() => {
     // Load favorites on mount
     const loadFavorites = async () => {
-      const data = await projectAPI.getFavoriteProjects('1');
-      setFavoriteIds(data.map((p: any) => p.pId || p.id));
-    };
+  const data = await favoriteAPI.getFavoriteProjects();
+  setFavoriteIds(data.map((p: any) => p.pId));
+};
     loadFavorites();
     // Listen for localStorage changes (e.g., clear all)
     const onStorage = (e: StorageEvent) => {
@@ -71,10 +71,7 @@ const FilterPage: React.FC = () => {
     // Listen for custom event from FavoritesPage
     const onClearAll = () => clearAllFavorites();
     window.addEventListener('favorites:clearAll', onClearAll);
-    return () => {
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('favorites:clearAll', onClearAll);
-    };
+    
   }, []);
 
   const fetchProjects = async () => {
@@ -134,13 +131,28 @@ const FilterPage: React.FC = () => {
   };
 
   const handleFavoriteToggle = async (project: Project) => {
-    setFavoriteIds(prev =>
-      prev.includes(project.pId)
-        ? prev.filter(id => id !== project.pId)
-        : [...prev, project.pId]
-    );
-    await projectAPI.toggleFavorite(project, '1');
-    // No reload from localStorage here to avoid overwriting the optimistic state
+//     setFavoriteIds(prev =>
+//       prev.includes(project.pId)
+//         ? prev.filter(id => id !== project.pId)
+//         : [...prev, project.pId]
+//     );
+//     await favoriteAPI.toggleFavorite(project);
+//     // No reload from localStorage here to avoid overwriting the optimistic state
+//     const updated = await favoriteAPI.getFavoriteProjects();
+// setFavoriteIds(updated.map((p: any) => p.pId));
+
+ // ✅ instant UI update (keep this)
+  setFavoriteIds(prev =>
+    prev.includes(project.pId)
+      ? prev.filter(id => id !== project.pId)
+      : [...prev, project.pId]
+  );
+
+  try {
+    await favoriteAPI.toggleFavorite(project);
+  } catch (error) {
+    console.error("Toggle failed", error);
+  }
   };
 
   return (
