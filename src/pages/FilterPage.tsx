@@ -13,6 +13,7 @@ import {
   getProjectsByDifficulty,
   getProjectsByArea,
   getProjectDescriptionById,
+  getAllProjects,
   favoriteAPI
 } from '../services/api';
 import ProjectDetailsModal from '../components/ProjectDetailsModal';
@@ -30,6 +31,7 @@ const FilterPage: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filters, setFilters] = useState<FilterOptions>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [projectDetails, setProjectDetails] = useState<any>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -94,8 +96,8 @@ const FilterPage: React.FC = () => {
       } else if (area) {
         data = await getProjectsByArea(area);
       } else {
-        data = await getProjectsByAll();
-      }
+  data = await getAllProjects(0, 10); // page 0, size 10
+}
       setProjects(data);
     } catch (error) {
       setProjects([]);
@@ -103,6 +105,49 @@ const FilterPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+//   const fetchProjects = async () => {
+//   setLoading(true);
+//   setError(null); // ✅ clear old error
+
+//   try {
+//     let data: Project[] = [];
+//     const { rating, difficulty, area } = filters;
+
+//     if (rating && difficulty && area) {
+//       data = await getProjectsByAll(rating, difficulty, area);
+//     } else if (rating && area) {
+//       data = await getProjectsByRatingArea(rating, area);
+//     } else if (difficulty && area) {
+//       data = await getProjectsByAreaDifficulty(difficulty, area);
+//     } else if (difficulty && rating) {
+//       data = await getProjectsByDifficultyRating(difficulty, rating);
+//     } else if (rating) {
+//       data = await getProjectsByRating(rating);
+//     } else if (difficulty) {
+//       data = await getProjectsByDifficulty(difficulty);
+//     } else if (area) {
+//       data = await getProjectsByArea(area);
+//     } else {
+//       data = await getProjectsByAll();
+//     }
+
+//     setProjects(data);
+
+//   } catch (error: any) {
+//     console.error("Error fetching projects:", error);
+
+//     setProjects([]);
+
+//     setError(
+//       error?.response?.data?.message ||
+//       "Failed to load projects"
+//     );
+
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
   const handleFilterChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
@@ -118,9 +163,14 @@ const FilterPage: React.FC = () => {
     try {
       const details = await getProjectDescriptionById(project.description.desIid);
       setProjectDetails(details);
-    } catch (e) {
-      setProjectDetails(null);
-    } finally {
+    } catch (e: any) {
+  setProjectDetails(null);
+
+  setError(
+    e?.response?.data?.message ||
+    "Failed to load project details"
+  );
+} finally {
       setDetailsLoading(false);
     }
   };
@@ -150,9 +200,15 @@ const FilterPage: React.FC = () => {
 
   try {
     await favoriteAPI.toggleFavorite(project);
-  } catch (error) {
-    console.error("Toggle failed", error);
-  }
+setError(null);
+  } catch (error: any) {
+  console.error("Toggle failed", error);
+
+  setError(
+    error?.response?.data?.message ||
+    "Failed to update favorite"
+  );
+}
   };
 
   return (
@@ -164,6 +220,18 @@ const FilterPage: React.FC = () => {
             onFilterChange={handleFilterChange}
             onClearFilters={handleClearFilters}
           />
+          {error && (
+  <div className="mb-6 p-4 bg-red-100 text-red-700 rounded">
+    {error}
+
+    <button
+      onClick={fetchProjects}
+      className="ml-4 text-blue-600 underline"
+    >
+      Retry
+    </button>
+  </div>
+)}
           {loading ? (
             <div className="text-center py-12 text-lg text-gray-600">Loading projects...</div>
           ) : projects.length === 0 ? (

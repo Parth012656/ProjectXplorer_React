@@ -22,8 +22,8 @@ const friendlyToBackend: Record<string, string> = {
   'AI/ML': 'AI/ML',
   'Web Development': 'Web Development',
   'Iot': 'IoT',
-  'Game Development': 'Game Dev',
-  'App development': 'Android Dev',
+  'Game Development': 'Game Development',   // ✅ FIXED
+  'App development': 'App Development',     // ✅ FIXED
 };
 
 // Reverse mapping backend -> friendly
@@ -42,14 +42,14 @@ const difficulties = [
 
 // 🔧 Helper: map domain → areaId
 const getAreaId = (domain: string) => {
-  // Accept either friendly (AI_ML) or backend (AI/ML) values
   const friendly = backendToFriendly[domain] ?? domain;
+
   switch (friendly) {
-    case "AI_ML": return 1;
-    case "Web_Development": return 2;
-    case "Iot": return 3;
-    case "Game_Development": return 4;
-    case "App_development": return 5;
+    case "AI/ML": return 1;
+    case "Web Development": return 3;
+    case "Iot": return 2;
+    case "Game Development": return 4;
+    case "App development": return 5;
     default: return 0;
   }
 };
@@ -161,53 +161,132 @@ useEffect(() => {
     setShowForm(false);
   };
 
-  const handleAddProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccess(null);
-    setError(null);
-    setLoading(true);
-    try {
-      // Convert friendly domain to backend value and compute areaId
-      const payload = {
-        ...form,
-        domain: toBackendDomain(form.domain),
-        areaId: getAreaId(form.domain),
-      };
-      await adminAPI.addProject(payload);
-      setSuccess("Project saved successfully!");
-      resetForm();
-      loadProjects();
-    } catch (error: any) {
-      console.error("Save project error:", error);
-      setError(error.message || "Failed to save project");
-    } finally { setLoading(false); }
-  };
+//   const handleAddProject = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     setSuccess(null);
+//     setError(null);
+//     setLoading(true);
+//     try {
+//       // Convert friendly domain to backend value and compute areaId
+//       const payload = {
+//         ...form,
+//         domain: toBackendDomain(form.domain),
+//         areaId: getAreaId(form.domain),
+//       };
+//       console.log("Payload:", payload);
+//       const areaId = getAreaId(form.domain);
 
+// if (areaId === 0) {
+//   setError("Invalid domain selected");
+//   setLoading(false); // ⚠️ important
+//   return;
+// }
+//       await adminAPI.addProject(payload);
+//       setSuccess("Project saved successfully!");
+//       resetForm();
+//       loadProjects();
+//     } catch (error: any) {
+//       console.error("Save project error:", error);
+//       setError(error.message || "Failed to save project");
+//     } finally { setLoading(false); }
+//   };
+
+const handleAddProject = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setSuccess(null);
+  setError(null);
+  setLoading(true);
+
+  const areaId = getAreaId(form.domain);
+
+  if (areaId === 0) {
+    setError("Invalid domain selected");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const payload = {
+      ...form,
+      domain: toBackendDomain(form.domain),
+      areaId: areaId, // ✅ use computed one
+    };
+
+    console.log("Payload:", payload);
+
+    await adminAPI.addProject(payload);
+
+    setSuccess("Project saved successfully!");
+    resetForm();
+    loadProjects();
+
+  } catch (error: any) {
+    console.error("Save project error:", error);
+    setError(error.message || "Failed to save project");
+  } finally {
+    setLoading(false);
+  }
+};
+  // const handleUpdateProject = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!editingProject) return;
+  
+  //   setSuccess(null);
+  //   setError(null);
+  //   setLoading(true);
+  //   try {
+  //     const payload = {
+  //       ...form,
+  //       domain: toBackendDomain(form.domain),
+  //       areaId: getAreaId(form.domain),
+  //     };
+  //     await adminAPI.updateProject(editingProject.pId, payload);
+  //     setSuccess("Project updated successfully!");
+  //     resetForm();
+  //     loadProjects();
+  //   } catch (error: any) {
+  //     console.error("Update project error:", error);
+  //     setError(error.message || "Failed to update project");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleUpdateProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingProject) return;
-  
-    setSuccess(null);
-    setError(null);
-    setLoading(true);
-    try {
-      const payload = {
-        ...form,
-        domain: toBackendDomain(form.domain),
-        areaId: getAreaId(form.domain),
-      };
-      await adminAPI.updateProject(editingProject.pId, payload);
-      setSuccess("Project updated successfully!");
-      resetForm();
-      loadProjects();
-    } catch (error: any) {
-      console.error("Update project error:", error);
-      setError(error.message || "Failed to update project");
-    } finally {
-      setLoading(false);
-    }
-  };
-  
+  e.preventDefault();
+  if (!editingProject) return;
+
+  setSuccess(null);
+  setError(null);
+  setLoading(true);
+
+  const areaId = getAreaId(form.domain);
+
+  if (areaId === 0) {
+    setError("Invalid domain selected");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const payload = {
+      ...form,
+      domain: toBackendDomain(form.domain),
+      areaId: areaId,
+    };
+
+    await adminAPI.updateProject(editingProject.pId, payload);
+
+    setSuccess("Project updated successfully!");
+    resetForm();
+    loadProjects();
+
+  } catch (error: any) {
+    console.error("Update project error:", error);
+    setError(error.message || "Failed to update project");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleDeleteProject = async (pId: number) => {
     if (!window.confirm("Are you sure you want to delete this project?")) return;

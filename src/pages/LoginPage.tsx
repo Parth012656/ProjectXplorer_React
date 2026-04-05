@@ -126,9 +126,26 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
 
     } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message || 'Login failed. Please try again.');
-    } finally {
+  console.error('Login error:', error);
+
+  // 🔥 Extract proper backend message
+  const backendMessage =
+    error?.response?.data?.message ||
+    error?.response?.data ||
+    error?.message ||
+    "Login failed. Please try again.";
+
+  // 🎯 Handle specific cases
+  if (error?.response?.status === 401) {
+    setError("Invalid username or password");
+  } else if (error?.response?.status === 403) {
+    setError("Access denied. Contact admin.");
+  } else if (error?.response?.status === 500) {
+    setError("Server error. Try again later.");
+  } else {
+    setError(backendMessage);
+  }
+}finally {
       setIsLoading(false);
     }
   };

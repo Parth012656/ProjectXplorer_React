@@ -114,6 +114,15 @@ api.interceptors.response.use(
 );
 
 // Project search endpoints
+
+export const getAllProjects = async (page = 0, size = 10) => {
+  const response = await api.get("/all", {
+    params: { page, size }
+  });
+
+  return response.data;
+};
+
 export const getProjectsByAll = async (rating?: number, difficulty?: number, area?: number): Promise<Project[]> => {
   const params: any = {};
   if (rating !== undefined) params.rating = rating;

@@ -14,6 +14,7 @@ const FavoritesPage: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [projectDetails, setProjectDetails] = useState<any>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   React.useEffect(() => {
     loadFavorites();
@@ -34,14 +35,26 @@ const FavoritesPage: React.FC = () => {
   const loadFavorites = async () => {
   try {
     setLoading(true);
+    setError(null);
+
     const favs = await favoriteAPI.getFavoriteProjects();
     setFavorites(favs);
-  } catch (error) {
+
+  } catch (error: any) {
     console.error('Error loading favorites:', error);
+
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      "Failed to load favorites";
+
+    setError(message);
+
   } finally {
     setLoading(false);
   }
 };
+
   // const handleFavoriteToggle = async (project: Project) => {
   //   try {
   //     await projectAPI.toggleFavorite(project, '1');
@@ -64,9 +77,14 @@ const handleFavoriteToggle = async (project: Project) => {
       }
     });
 
-  } catch (error) {
-    console.error('Error toggling favorite:', error);
-  }
+  } catch (error: any) {
+  console.error('Error toggling favorite:', error);
+
+  setError(
+    error?.response?.data?.message ||
+    "Failed to update favorite"
+  );
+}
 };
 
   const handleProjectClick = async (project: Project) => {
@@ -75,9 +93,14 @@ const handleFavoriteToggle = async (project: Project) => {
     try {
       const details = await getProjectDescriptionById(project.description.desIid);
       setProjectDetails(details);
-    } catch (e) {
-      setProjectDetails(null);
-    } finally {
+    } catch (e: any) {
+  setProjectDetails(null);
+
+  setError(
+    e?.response?.data?.message ||
+    "Failed to load project details"
+  );
+} finally {
       setDetailsLoading(false);
     }
   };
@@ -112,9 +135,14 @@ const handleClearAllFavorites = async () => {
     await favoriteAPI.clearAllFavorites();
 
     setFavorites([]); // clear UI
-  } catch (error) {
-    console.error("Failed to clear favorites", error);
-  }
+  } catch (error: any) {
+  console.error("Failed to clear favorites", error);
+
+  setError(
+    error?.response?.data?.message ||
+    "Failed to clear favorites"
+  );
+}
 };
 
   return (
@@ -168,6 +196,18 @@ const handleClearAllFavorites = async () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
+          {error && (
+  <div className="mb-6 p-4 bg-red-100 text-red-700 rounded">
+    {error}
+
+    <button
+      onClick={loadFavorites}
+      className="ml-4 text-blue-600 underline"
+    >
+      Retry
+    </button>
+  </div>
+)}
           {/* Loading State */}
           {loading && (
             <div className="flex justify-center items-center py-12">
