@@ -10,10 +10,10 @@ interface ProjectDetailsModalProps {
 
 const ProjectDetailsModal: React.FC<ProjectDetailsModalProps> = ({ project, details, loading, onClose }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 relative border-2 border-blue-100">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black bg-opacity-40 overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 sm:mx-auto p-4 sm:p-8 relative border-2 border-blue-100 max-h-[90vh] overflow-y-auto">
         <button
-          className="absolute top-3 right-3 text-gray-500 hover:text-red-500 text-2xl font-bold"
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 text-gray-500 hover:text-red-500 text-2xl font-bold z-10"
           onClick={onClose}
         >
           &times;

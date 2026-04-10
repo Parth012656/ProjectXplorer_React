@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaHome, FaHeart, FaSignInAlt, FaSignOutAlt, FaUser, FaSearch } from 'react-icons/fa';
@@ -9,9 +9,12 @@ interface NavbarProps {
   onLogout: () => void;
 }
 
+
 const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
   const location = useLocation();
 
+
+  const [isOpen, setIsOpen] = useState(false);
   // const getNavItems = () => {
   //   const baseItems = [
   //     { path: '/home', label: 'Home', icon: <FaHome /> },
@@ -36,12 +39,12 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
       { path: '/filter', label: 'Explore', icon: <FaSearch /> },
       { path: '/favorites', label: 'Favorites', icon: <FaHeart /> },
     ];
-  
+
     if (!user) {
       // Only show Home if not logged in
       baseItems.unshift({ path: '/home', label: 'Home', icon: <FaHome /> });
     }
-  
+
     if (user) {
       const userRole = (user.role || '').toUpperCase();
       if (userRole === 'ROLE_ADMIN') {
@@ -50,10 +53,10 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
         baseItems.push({ path: '/user-dashboard', label: 'Dashboard', icon: <FaUser /> });
       }
     }
-  
+
     return baseItems;
   };
-  
+
 
   const navItems = getNavItems();
 
@@ -83,17 +86,23 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  isActive(item.path)
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
-                }`}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isActive(item.path)
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                  }`}
               >
                 <span>{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
             ))}
           </div>
+
+          <button
+            className="md:hidden p-2 text-gray-700"
+            onClick={() => setIsOpen(true)}
+          >
+            ☰
+          </button>
 
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
@@ -132,24 +141,38 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
       </div>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden">
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 z-40"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+      {/* Mobile Sidebar */}
+      <div
+        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-50 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+      >
+        {/* Close Button */}
+        <div className="flex justify-end p-4">
+          <button onClick={() => setIsOpen(false)}>✕</button>
+        </div>
+
+        <div className="px-2 space-y-1">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
-                isActive(item.path)
+              onClick={() => setIsOpen(false)}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${isActive(item.path)
                   ? 'text-blue-600 bg-blue-50'
                   : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
-              }`}
+                }`}
             >
               <span>{item.icon}</span>
               <span>{item.label}</span>
             </Link>
           ))}
-          
-          {/* Mobile Auth Section */}
+
           {user && (
             <div className="border-t border-gray-200 pt-2 mt-2">
               <div className="flex items-center justify-between px-3 py-2">
@@ -157,23 +180,21 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                   <FaUser className="text-blue-600" />
                   <div>
                     <div className="font-medium">{user.username}</div>
-                    <div className="text-xs text-gray-500 capitalize">{user.role}</div>
                   </div>
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+
+                <button
                   onClick={onLogout}
-                  className="flex items-center space-x-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm"
+                  className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm"
                 >
-                  <FaSignOutAlt />
-                  <span>Logout</span>
-                </motion.button>
+                  Logout
+                </button>
               </div>
             </div>
           )}
         </div>
       </div>
+      {/* </div> */}
     </motion.nav>
   );
 };

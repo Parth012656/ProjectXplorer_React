@@ -11,8 +11,8 @@ interface FilterPanelProps {
 
 const areaMap: Record<string, number> = {
   'AI/ML': 1,
-  'IoT': 2,
-  'Web Development': 3,
+  'IoT': 3,
+  'Web Development': 2,
   'Game Development': 4,
   'Android Development': 5,
 };

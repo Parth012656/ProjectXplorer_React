@@ -96,7 +96,7 @@ const FilterPage: React.FC = () => {
       } else if (area) {
         data = await getProjectsByArea(area);
       } else {
-  data = await getAllProjects(0, 10); // page 0, size 10
+  data = await getAllProjects(0, 50); // page 0, size 50
 }
       setProjects(data);
     } catch (error) {
